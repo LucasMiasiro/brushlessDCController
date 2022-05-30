@@ -111,7 +111,6 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
 
             const char c0[] = BT_MSG_SET_PWMDES;
             if (isEqual((char *)param->data_ind.data, (char *)c0, sizeof(c0)/sizeof(c0[0]) - 1)){
-                std::cout<< "How" << std::endl;
                 uint16_t pwmDes_new = readUInt16((char *) param->data_ind.data);
                 if (pwmDes_new >= MAX_PWM){
                     pwmDes_new = MAX_PWM;

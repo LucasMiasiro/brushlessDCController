@@ -1,7 +1,7 @@
 #pragma once
 
 // Application Control
-#define SYSTEM_SAMPLE_PERIOD_MS         1000
+#define SYSTEM_SAMPLE_PERIOD_MS         100
 #define APP_MODE                        0
 
 #define SHOULD_LOG                      1

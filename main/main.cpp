@@ -14,7 +14,7 @@ extern "C" void app_main(void)
     serialLogger::header();
     #endif
     builtin_led led;
-    led.blink(10, false);
+    led.blink(5, false);
 
     static TaskHandle_t controlTask_h = NULL, sendTask_h = NULL;
     static uint16_t pwmDes = {0};
@@ -67,8 +67,6 @@ void controlTask(void* Parameters){
     TickType_t startTimer = xTaskGetTickCount();
 
     while(1){
-        // std::cout << "Hi" << std::endl;
-
         BLDC0.setPWM(*(controlData->pwmDes_ptr));
         vTaskDelayUntil(&startTimer, SYSTEM_SAMPLE_PERIOD_MS/portTICK_PERIOD_MS);
 

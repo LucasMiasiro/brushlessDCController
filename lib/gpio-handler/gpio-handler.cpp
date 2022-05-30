@@ -23,16 +23,16 @@ void builtin_led::blink(int n, bool endHigh){
     if (endHigh){
         for (int i = 0; i < n; i++){
             set_level(0);
-            vTaskDelay(100.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
             set_level(1);
-            vTaskDelay(100.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
         }
     } else {
         for (int i = 0; i < n; i++){
             set_level(1);
-            vTaskDelay(100.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
             set_level(0);
-            vTaskDelay(100.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
         }
     }
 }
@@ -46,8 +46,8 @@ void bldc::setup(){
 
     mcpwm_config_t pwm_config0 = {
         .frequency = BLDC0_FREQ,
-        .cmpr_a = 0,     // duty cycle of PWMxA = 0
-        .cmpr_b = 0,     // duty cycle of PWMxB = 0 ?
+        .cmpr_a = 0,     // Initial duty cycle of PWM0A
+        .cmpr_b = 0,     // Initial duty cycle of PWM0B
         .duty_mode = MCPWM_DUTY_MODE_0,
         .counter_mode = MCPWM_UP_COUNTER,
     };
