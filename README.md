@@ -1,0 +1,2 @@
+- Brushless DC Motor controller via PWM
+- Receives command via Serial Bluetooth
