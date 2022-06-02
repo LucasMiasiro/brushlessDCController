@@ -1,4 +1,5 @@
 #pragma once
+#include "../lib/PID/include/PID.h"
 
 struct rpmState{
     float rpmCurr;
@@ -10,6 +11,7 @@ struct rpmState{
 struct controlData_ptr{
     uint16_t* pwmDes_ptr;
     rpmState* rpmState_ptr;
+    PID* pid_ptr;
 };
 
 void controlTask(void*);

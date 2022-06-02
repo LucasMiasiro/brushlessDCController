@@ -67,7 +67,8 @@ void rpmCounter::getRPM(rpmState *rpm)
         } else {
             ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &pulse_count));
             // ESP_LOGI(TAG, "Pulse count: %d", pulse_count);
-            rpm->rpmCurr = pulse_count*60.0f*(1000.0f/RPM_WINDOW_MS);
+            // rpm->rpmcurr = pulse_count*60.0f*(1000.0f/rpm_window_ms);
+            rpm->rpmCurr = 0.0f;
         }
         rpm->rpmCurr_isNew = true;
         start = esp_timer_get_time();

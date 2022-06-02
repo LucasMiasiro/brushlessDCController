@@ -7,6 +7,7 @@
 #include "BT.cpp"
 #include "esp_timer.h"
 #include "freq-count.h"
+#include "PID.h"
 
 #if APP_MODE==0
 extern "C" void app_main(void)
@@ -23,8 +24,10 @@ extern "C" void app_main(void)
                                 .rpmCurr_isNew = false,
                                 .rpmDes = 0.0f,
                                 .rpmDes_isNew = false};
+    static PID pid0;
     static controlData_ptr controlData = {.pwmDes_ptr = &pwmDes[0],
-                                          .rpmState_ptr = &rpmState0};
+                                          .rpmState_ptr = &rpmState0,
+                                          .pid_ptr = &pid0};
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
 
@@ -80,9 +83,17 @@ void controlTask(void* Parameters){
     TickType_t startTimer = xTaskGetTickCount();
 
     while(1){
+        controlData->pid_ptr->update(controlData->rpmState_ptr->rpmDes,
+                                    controlData->rpmState_ptr->rpmCurr,
+                                    controlData->rpmState_ptr->rpmCurr_isNew);
+
+        // *(controlData->pwmDes_ptr) = controlData->pid_ptr->get(); //TODO: descomentar
+        // controlData->rpmState_ptr->rpmCurr_isNew = false;
+
         BLDC0.setPWM(*(controlData->pwmDes_ptr));
         BLDC1.setPWM(*(controlData->pwmDes_ptr + 1));
         BLDC2.setPWM(*(controlData->pwmDes_ptr + 2));
+
         vTaskDelayUntil(&startTimer, SYSTEM_SAMPLE_PERIOD_MS/portTICK_PERIOD_MS);
 
 #if LOG_TIMER
@@ -105,6 +116,7 @@ void sendTask(void* Parameters){
 
     while(1){
 
+        serialLogger::logFloat(&(controlData->rpmState_ptr->rpmDes), "RPMDES");
         serialLogger::logUInt16(controlData->pwmDes_ptr, "PWMDES");
         serialLogger::logFloat(&(controlData->rpmState_ptr->rpmCurr), "RPMCURR");
         serialLogger::blank_lines(1);

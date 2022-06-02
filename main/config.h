@@ -1,7 +1,7 @@
 #pragma once
 
 // Application Control
-#define SYSTEM_SAMPLE_PERIOD_MS         1000
+#define SYSTEM_SAMPLE_PERIOD_MS         100
 #define APP_MODE                        0
 
 #define SHOULD_LOG                      1
@@ -19,6 +19,8 @@
 #define BUILTIN_LED                     GPIO_NUM_2
 #define MAX_PWM                         2500
 #define N_BLDC                          3
+#define PWM_MIN                         1000.0f
+#define PWM_DELTA                       1000.0f
 
 #define BLDC0_UNIT                      MCPWM_UNIT_0
 #define BLDC0_TIMER                     MCPWM_TIMER_0
@@ -42,9 +44,19 @@
 #define BLDC2_OPR                       MCPWM_GEN_A
 
 #define RPM_MAX_COUNT                   1000
-#define RPM_COUNT                       4
-#define RPM_WINDOW_MS                   1000
+#define RPM_MIN                         1200
+#define RPM_MAX                         10000
+#define RPM_COUNT                       3
+#define RPM_WINDOW_MS                   100
 #define RPM0_GPIO                       0
+
+// PID
+#define BLDC_KP                         0.08f
+#define BLDC_KI                         0.3f
+#define BLDC_IMAX                       0.35f
+#define BLDC_FF                         0.0f
+#define BLDC_RAMP                       200.0f
+#define BLDC_FFMAX                      1.0f
 
 // Bluetooth
 #define SPP_TAG                         "PWM_CTRL"
@@ -52,8 +64,10 @@
 #define BT_INIT_MSG                     "Connection stablished...\n"
 #define BT_RECEIVED_MSG                 "Received: "
 #define BT_DEVICE_NAME                  "PWM Control"
-#define BT_MSG_SET_PWMDES               "P"
+#define BT_MSG_SET_PWMDES               "PSET"
+#define BT_MSG_SET_RPMDES               "RSET"
 #define BT_MSG_SET_PWMDES_DONE          "Setting PWM to: "
+#define BT_MSG_SET_RPMDES_DONE          "Setting RPM to: "
 #define BT_MSG_SHUTDOWN                 "X"
-#define BT_MSG_GET_RPM                  "RPM"
+#define BT_MSG_GET_RPM                  "RGET"
 #define BT_BUFFERSIZE                   32

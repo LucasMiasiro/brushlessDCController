@@ -34,11 +34,25 @@ struct pwmConfig {
 };
 static pwmConfig pwmConfigDes;
 
+struct rpmConfig {
+    float rpmDes;
+    uint8_t n;
+};
+static rpmConfig rpmConfigDes;
+
 pwmConfig readPWM(char *in){
     char trashBuffer[BT_BUFFERSIZE];
     int PWM{0}, n_BLDC{0};
     sscanf(in, "%s %d %d", trashBuffer, &PWM, &n_BLDC);
     pwmConfig out = {.pwmDes = (uint16_t) PWM, .n = (uint8_t) n_BLDC};
+    return out;
+}
+
+rpmConfig readRPM(char *in){
+    char trashBuffer[BT_BUFFERSIZE];
+    int RPM{0}, n_BLDC{0};
+    sscanf(in, "%s %d %d", trashBuffer, &RPM, &n_BLDC);
+    rpmConfig out = {.rpmDes = (float) RPM, .n = (uint8_t) n_BLDC};
     return out;
 }
 
@@ -75,10 +89,19 @@ void logRPM(esp_spp_cb_param_t *param){
 
 void logPWMConfig(esp_spp_cb_param_t *param){
 
-    sprintf(buffer, "Setting BLDC %u to: %u", pwmConfigDes.n, pwmConfigDes.pwmDes);
+    sprintf(buffer, "Setting BLDC PWM %u to: %u", pwmConfigDes.n, pwmConfigDes.pwmDes);
     esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
     esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
 }
+
+void logRPMConfig(esp_spp_cb_param_t *param){
+
+    sprintf(buffer, "Setting BLDC RPM %u to: %.3f", rpmConfigDes.n, rpmConfigDes.rpmDes);
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+}
+
+
 
 bool isEqual(char *a, char *b, const int len){
     for(int i = 0; i < len; i++){
@@ -102,6 +125,22 @@ bool getPWM(esp_spp_cb_param_t *param){
 
     return true;
 };
+
+bool getRPM(esp_spp_cb_param_t *param){
+    rpmConfigDes = readRPM((char *) param->data_ind.data);
+
+    if (rpmConfigDes.rpmDes >= RPM_MAX){
+        return false;
+    }
+
+    if (rpmConfigDes.n >= N_BLDC){
+        return false;
+    }
+
+    return true;
+};
+
+
 
 
 static bool bWriteAfterOpenEvt = false;
@@ -171,6 +210,15 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
             const char c2[] = BT_MSG_GET_RPM;
             if (isEqual((char *)param->data_ind.data, (char *)c2, sizeof(c2)/sizeof(c2[0]) - 1)){
                 logRPM(param);
+            }
+
+            const char c3[] = BT_MSG_SET_RPMDES;
+            if (isEqual((char *)param->data_ind.data, (char *)c3, sizeof(c3)/sizeof(c3[0]) - 1)){
+                if (getRPM(param)){
+                    __BTData_ptr->controlData->rpmState_ptr->rpmDes = rpmConfigDes.rpmDes;
+                    __BTData_ptr->controlData->rpmState_ptr->rpmDes_isNew = true;
+                    logRPMConfig(param);
+                }; 
             }
 
             // if (isEqual((char *)param->data_ind.data, (char *)c2, sizeof(c2)/sizeof(c2[0]) - 1)){
