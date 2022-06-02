@@ -12,6 +12,12 @@
 
 namespace serialBTLogger{
 
+struct BTData_ptr {
+    controlData_ptr *controlData;
+    TaskHandle_t *controlTask_h;
+};
+static BTData_ptr *__BTData_ptr;
+
 static char buffer[BT_BUFFERSIZE];
 static char LF[] = "\n";
 
@@ -22,7 +28,19 @@ uint16_t readUInt16(char *in){
     return out;
 }
 
+struct pwmConfig {
+    uint16_t pwmDes;
+    uint8_t n;
+};
+static pwmConfig pwmConfigDes;
 
+pwmConfig readPWM(char *in){
+    char trashBuffer[BT_BUFFERSIZE];
+    int PWM{0}, n_BLDC{0};
+    sscanf(in, "%s %d %d", trashBuffer, &PWM, &n_BLDC);
+    pwmConfig out = {.pwmDes = (uint16_t) PWM, .n = (uint8_t) n_BLDC};
+    return out;
+}
 
 int sizeofArray(char* array){
     int numberOfChars = 0;
@@ -49,6 +67,19 @@ void logUInt16(esp_spp_cb_param_t *param, const uint16_t *dataPtr){
     esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
 }
 
+void logRPM(esp_spp_cb_param_t *param){
+    sprintf(buffer, "RPM: %.3f", __BTData_ptr->controlData->rpmState_ptr->rpmCurr);
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+}
+
+void logPWMConfig(esp_spp_cb_param_t *param){
+
+    sprintf(buffer, "Setting BLDC %u to: %u", pwmConfigDes.n, pwmConfigDes.pwmDes);
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+}
+
 bool isEqual(char *a, char *b, const int len){
     for(int i = 0; i < len; i++){
         if(*(a+i)!=*(b+i))
@@ -57,11 +88,21 @@ bool isEqual(char *a, char *b, const int len){
     return 1;
 }
 
-struct BTData_ptr {
-    controlData_ptr *controlData;
-    TaskHandle_t *controlTask_h;
+
+bool getPWM(esp_spp_cb_param_t *param){
+    pwmConfigDes = readPWM((char *) param->data_ind.data);
+
+    if (pwmConfigDes.pwmDes >= MAX_PWM){
+        return false;
+    }
+
+    if (pwmConfigDes.n >= N_BLDC){
+        return false;
+    }
+
+    return true;
 };
-static BTData_ptr *__BTData_ptr;
+
 
 static bool bWriteAfterOpenEvt = false;
 static bool bWriteAfterWriteEvt = false;
@@ -111,14 +152,25 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
 
             const char c0[] = BT_MSG_SET_PWMDES;
             if (isEqual((char *)param->data_ind.data, (char *)c0, sizeof(c0)/sizeof(c0[0]) - 1)){
-                uint16_t pwmDes_new = readUInt16((char *) param->data_ind.data);
-                if (pwmDes_new >= MAX_PWM){
-                    pwmDes_new = MAX_PWM;
-                }
-                *(__BTData_ptr->controlData->pwmDes_ptr) = pwmDes_new;
-                const char c1[] = BT_MSG_SET_PWMDES_DONE;
-                esp_spp_write(param->srv_open.handle, sizeof(c1)/sizeof(c1[0])-1, (uint8_t*) c1);
-                logUInt16(param, &pwmDes_new);
+                if (getPWM(param)){
+                    *(__BTData_ptr->controlData->pwmDes_ptr + pwmConfigDes.n) = pwmConfigDes.pwmDes;
+                    logPWMConfig(param);
+                }; 
+            }
+
+            const char c1[] = BT_MSG_SHUTDOWN;
+            if (isEqual((char *)param->data_ind.data, (char *)c1, sizeof(c1)/sizeof(c1[0]) - 1)){
+                pwmConfigDes.pwmDes = 0;
+                for (uint8_t i = 0; i < N_BLDC; i++){
+                    pwmConfigDes.n = i;
+                    *(__BTData_ptr->controlData->pwmDes_ptr + i) = 0;
+                    logPWMConfig(param);
+                }; 
+            }
+
+            const char c2[] = BT_MSG_GET_RPM;
+            if (isEqual((char *)param->data_ind.data, (char *)c2, sizeof(c2)/sizeof(c2[0]) - 1)){
+                logRPM(param);
             }
 
             // if (isEqual((char *)param->data_ind.data, (char *)c2, sizeof(c2)/sizeof(c2[0]) - 1)){

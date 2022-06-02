@@ -12,7 +12,8 @@ public:
 
 class bldc{
     void setup();
+    const uint8_t n;
 public:
-    bldc();
+    bldc(const uint8_t N) : n(N) {setup();};
     void setPWM(uint16_t pwmDes);
 };

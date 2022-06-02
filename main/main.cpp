@@ -6,6 +6,7 @@
 #include "config.h"
 #include "BT.cpp"
 #include "esp_timer.h"
+#include "freq-count.h"
 
 #if APP_MODE==0
 extern "C" void app_main(void)
@@ -16,12 +17,24 @@ extern "C" void app_main(void)
     builtin_led led;
     led.blink(5, false);
 
-    static TaskHandle_t controlTask_h = NULL, sendTask_h = NULL;
-    static uint16_t pwmDes = {0};
-    static controlData_ptr controlData = {.pwmDes_ptr = &pwmDes};
-
+    static TaskHandle_t controlTask_h = NULL, sendTask_h = NULL, readRPMTask_h = NULL;
+    static uint16_t pwmDes[N_BLDC] = {0};
+    static rpmState rpmState0 = {.rpmCurr = 0.0f,
+                                .rpmCurr_isNew = false,
+                                .rpmDes = 0.0f,
+                                .rpmDes_isNew = false};
+    static controlData_ptr controlData = {.pwmDes_ptr = &pwmDes[0],
+                                          .rpmState_ptr = &rpmState0};
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
+
+    xTaskCreatePinnedToCore(readRPMTask,
+                            "readRPM Task",
+                            4*1024,
+                            &controlData,
+                            3,
+                            &readRPMTask_h,
+                            1);
 
     xTaskCreatePinnedToCore(controlTask,
                             "Control Task",
@@ -57,7 +70,7 @@ extern "C" void app_main(void)
 
 void controlTask(void* Parameters){
     controlData_ptr* controlData = (controlData_ptr*) Parameters;
-    bldc BLDC0;
+    bldc BLDC0(0), BLDC1(1), BLDC2(2);
 
 #if LOG_TIMER
     int64_t start = esp_timer_get_time();
@@ -68,6 +81,8 @@ void controlTask(void* Parameters){
 
     while(1){
         BLDC0.setPWM(*(controlData->pwmDes_ptr));
+        BLDC1.setPWM(*(controlData->pwmDes_ptr + 1));
+        BLDC2.setPWM(*(controlData->pwmDes_ptr + 2));
         vTaskDelayUntil(&startTimer, SYSTEM_SAMPLE_PERIOD_MS/portTICK_PERIOD_MS);
 
 #if LOG_TIMER
@@ -91,6 +106,7 @@ void sendTask(void* Parameters){
     while(1){
 
         serialLogger::logUInt16(controlData->pwmDes_ptr, "PWMDES");
+        serialLogger::logFloat(&(controlData->rpmState_ptr->rpmCurr), "RPMCURR");
         serialLogger::blank_lines(1);
 
         vTaskDelayUntil(&startTimer, SYSTEM_SAMPLE_PERIOD_MS/portTICK_PERIOD_MS);
@@ -100,6 +116,34 @@ void sendTask(void* Parameters){
 //         start = esp_timer_get_time();
 //         serialLogger::logInt64(&dt, "DTSEND");
 // #endif
+
+    }
+}
+
+void readRPMTask(void* Parameters){
+    controlData_ptr* controlData = (controlData_ptr*) Parameters;
+    rpmCounter rpm0(RPM0_GPIO);
+
+#if LOG_TIMER
+    int64_t start = esp_timer_get_time();
+    int64_t dt = 0;
+#endif
+
+    TickType_t startTimer = xTaskGetTickCount();
+    rpm0.getRPM(controlData->rpmState_ptr);
+    // TODO: Corrigir problema da leitura de RPM bloquear essa task
+
+    while(1){
+        std::cout << "hey" << std::endl;
+        // rpm0.getRPM(controlData->rpmState_ptr);
+
+        // vTaskDelayUntil(&startTimer, SYSTEM_SAMPLE_PERIOD_MS/portTICK_PERIOD_MS);
+
+#if LOG_TIMER
+        dt = esp_timer_get_time() - start;
+        start = esp_timer_get_time();
+        serialLogger::logInt64(&dt, "DTRPM");
+#endif
 
     }
 }
