@@ -64,10 +64,12 @@
 #define BT_INIT_MSG                     "Connection stablished...\n"
 #define BT_RECEIVED_MSG                 "Received: "
 #define BT_DEVICE_NAME                  "PWM Control"
-#define BT_MSG_SET_PWMDES               "PSET"
-#define BT_MSG_SET_RPMDES               "RSET"
+// #define BT_DEVICE_NAME                  "PWM Control 2"
 #define BT_MSG_SET_PWMDES_DONE          "Setting PWM to: "
 #define BT_MSG_SET_RPMDES_DONE          "Setting RPM to: "
+#define BT_BUFFERSIZE                   32
+
 #define BT_MSG_SHUTDOWN                 "X"
 #define BT_MSG_GET_RPM                  "RGET"
-#define BT_BUFFERSIZE                   32
+#define BT_MSG_SET_PWMDES               "PSET"
+#define BT_MSG_SET_RPMDES               "RSET"
