@@ -24,10 +24,12 @@ extern "C" void app_main(void)
                                 .rpmCurr_isNew = false,
                                 .rpmDes = 0.0f,
                                 .rpmDes_isNew = false};
-    static PID pid0;
+    // static PID pid0;
+    static SMC2 smc2_0;
     static controlData_ptr controlData = {.pwmDes_ptr = &pwmDes[0],
                                           .rpmState_ptr = &rpmState0,
-                                          .pid_ptr = &pid0};
+                                        //   .pid_ptr = &pid0};
+                                          .smc2_ptr = &smc2_0};
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
 
@@ -83,12 +85,18 @@ void controlTask(void* Parameters){
     TickType_t startTimer = xTaskGetTickCount();
 
     while(1){
-        controlData->pid_ptr->update(controlData->rpmState_ptr->rpmDes,
+
+        // controlData->pid_ptr->update(controlData->rpmState_ptr->rpmDes,
+        //                             controlData->rpmState_ptr->rpmCurr,
+        //                             controlData->rpmState_ptr->rpmCurr_isNew);
+
+        controlData->smc2_ptr->update(controlData->rpmState_ptr->rpmDes,
                                     controlData->rpmState_ptr->rpmCurr,
                                     controlData->rpmState_ptr->rpmCurr_isNew);
 
-        // *(controlData->pwmDes_ptr) = controlData->pid_ptr->get(); //TODO: descomentar
-        // controlData->rpmState_ptr->rpmCurr_isNew = false;
+        // *(controlData->pwmDes_ptr) = controlData->pid_ptr->get();
+        *(controlData->pwmDes_ptr) = controlData->smc2_ptr->get();
+        controlData->rpmState_ptr->rpmCurr_isNew = false;
 
         BLDC0.setPWM(*(controlData->pwmDes_ptr));
         BLDC1.setPWM(*(controlData->pwmDes_ptr + 1));

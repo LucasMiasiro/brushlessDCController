@@ -1,7 +1,7 @@
 #pragma once
 
 // Application Control
-#define SYSTEM_SAMPLE_PERIOD_MS         100
+#define SYSTEM_SAMPLE_PERIOD_MS         100 // TODO
 #define APP_MODE                        0
 
 #define SHOULD_LOG                      1
@@ -58,13 +58,20 @@
 #define BLDC_RAMP                       200.0f
 #define BLDC_FFMAX                      1.0f
 
+// SMC2
+#define BLDC_C1                         0.1f
+#define BLDC_FSTAR                      3.0f
+#define BLDC_FI                         100.0f
+#define BLDC_ERROR_FILTER               0
+#define BLDC_ERROR_FILTER_K             0.6f
+
 // Bluetooth
 #define SPP_TAG                         "PWM_CTRL"
 #define SPP_SERVER_NAME                 "PWM_CTRL_SERVER"
 #define BT_INIT_MSG                     "Connection stablished...\n"
 #define BT_RECEIVED_MSG                 "Received: "
-#define BT_DEVICE_NAME                  "PWM Control"
-// #define BT_DEVICE_NAME                  "PWM Control 2"
+// #define BT_DEVICE_NAME                  "PWM Control"
+#define BT_DEVICE_NAME                  "PWM Control 2"
 #define BT_MSG_SET_PWMDES_DONE          "Setting PWM to: "
 #define BT_MSG_SET_RPMDES_DONE          "Setting RPM to: "
 #define BT_BUFFERSIZE                   32

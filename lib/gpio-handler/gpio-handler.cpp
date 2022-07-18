@@ -23,16 +23,20 @@ void builtin_led::blink(int n, bool endHigh){
     if (endHigh){
         for (int i = 0; i < n; i++){
             set_level(0);
-            vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            // vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            vTaskDelay(10.f/portTICK_PERIOD_MS);
             set_level(1);
-            vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            // vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            vTaskDelay(10.f/portTICK_PERIOD_MS);
         }
     } else {
         for (int i = 0; i < n; i++){
             set_level(1);
-            vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            // vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            vTaskDelay(10.f/portTICK_PERIOD_MS);
             set_level(0);
-            vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            // vTaskDelay(1000.0f/SYSTEM_SAMPLE_PERIOD_MS);
+            vTaskDelay(10.f/portTICK_PERIOD_MS);
         }
     }
 }
