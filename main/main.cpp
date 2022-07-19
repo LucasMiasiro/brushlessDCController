@@ -20,16 +20,16 @@ extern "C" void app_main(void)
 
     static TaskHandle_t controlTask_h = NULL, sendTask_h = NULL, readRPMTask_h = NULL;
     static uint16_t pwmDes[N_BLDC] = {0};
-    static rpmState rpmState0 = {.rpmCurr = 0.0f,
-                                .rpmCurr_isNew = false,
-                                .rpmDes = 0.0f,
-                                .rpmDes_isNew = false};
+    static rpmState rpmState[N_BLDC] = {{0.0f, false, 0.0f, false},
+                                        {0.0f, false, 0.0f, false},
+                                        {0.0f, false, 0.0f, false}};
+
     // static PID pid0;
-    static SMC2 smc2_0;
+    // static SMC2 smc2_0;
     static controlData_ptr controlData = {.pwmDes_ptr = &pwmDes[0],
-                                          .rpmState_ptr = &rpmState0,
+                                          .rpmState_ptr = &rpmState[0] };
                                         //   .pid_ptr = &pid0};
-                                          .smc2_ptr = &smc2_0};
+                                        //   .smc2_ptr = &smc2_0};
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
 
@@ -76,6 +76,7 @@ extern "C" void app_main(void)
 void controlTask(void* Parameters){
     controlData_ptr* controlData = (controlData_ptr*) Parameters;
     bldc BLDC0(0), BLDC1(1), BLDC2(2);
+    SMC2 SMC0, SMC1, SMC2;
 
 #if LOG_TIMER
     int64_t start = esp_timer_get_time();
@@ -90,13 +91,25 @@ void controlTask(void* Parameters){
         //                             controlData->rpmState_ptr->rpmCurr,
         //                             controlData->rpmState_ptr->rpmCurr_isNew);
 
-        controlData->smc2_ptr->update(controlData->rpmState_ptr->rpmDes,
-                                    controlData->rpmState_ptr->rpmCurr,
-                                    controlData->rpmState_ptr->rpmCurr_isNew);
+        SMC0.update(controlData->rpmState_ptr[0].rpmDes,
+                    controlData->rpmState_ptr[0].rpmCurr,
+                    controlData->rpmState_ptr[0].rpmCurr_isNew);
+
+        SMC1.update(controlData->rpmState_ptr[1].rpmDes,
+                    controlData->rpmState_ptr[1].rpmCurr,
+                    controlData->rpmState_ptr[1].rpmCurr_isNew);
+
+        SMC2.update(controlData->rpmState_ptr[2].rpmDes,
+                    controlData->rpmState_ptr[2].rpmCurr,
+                    controlData->rpmState_ptr[2].rpmCurr_isNew);
 
         // *(controlData->pwmDes_ptr) = controlData->pid_ptr->get();
-        *(controlData->pwmDes_ptr) = controlData->smc2_ptr->get();
-        controlData->rpmState_ptr->rpmCurr_isNew = false;
+        *(controlData->pwmDes_ptr) = SMC0.get();
+        *(controlData->pwmDes_ptr+1) = SMC1.get();
+        *(controlData->pwmDes_ptr+2) = SMC2.get();
+        controlData->rpmState_ptr[0].rpmCurr_isNew = false;
+        controlData->rpmState_ptr[1].rpmCurr_isNew = false;
+        controlData->rpmState_ptr[2].rpmCurr_isNew = false;
 
         BLDC0.setPWM(*(controlData->pwmDes_ptr));
         BLDC1.setPWM(*(controlData->pwmDes_ptr + 1));
@@ -124,9 +137,15 @@ void sendTask(void* Parameters){
 
     while(1){
 
-        serialLogger::logFloat(&(controlData->rpmState_ptr->rpmDes), "RPMDES");
-        serialLogger::logUInt16(controlData->pwmDes_ptr, "PWMDES");
-        serialLogger::logFloat(&(controlData->rpmState_ptr->rpmCurr), "RPMCURR");
+        serialLogger::logUInt16(controlData->pwmDes_ptr, "PWMDES0");
+        serialLogger::logUInt16(controlData->pwmDes_ptr+1, "PWMDES1");
+        serialLogger::logUInt16(controlData->pwmDes_ptr+2, "PWMDES2");
+        serialLogger::logFloat(&(controlData->rpmState_ptr[0].rpmDes), "RPMDES0");
+        serialLogger::logFloat(&(controlData->rpmState_ptr[1].rpmDes), "RPMDES1");
+        serialLogger::logFloat(&(controlData->rpmState_ptr[2].rpmDes), "RPMDES2");
+        serialLogger::logFloat(&(controlData->rpmState_ptr[0].rpmCurr), "RPMCURR0");
+        serialLogger::logFloat(&(controlData->rpmState_ptr[1].rpmCurr), "RPMCURR1");
+        serialLogger::logFloat(&(controlData->rpmState_ptr[2].rpmCurr), "RPMCURR2");
         serialLogger::blank_lines(1);
 
         vTaskDelayUntil(&startTimer, SYSTEM_SAMPLE_PERIOD_MS/portTICK_PERIOD_MS);

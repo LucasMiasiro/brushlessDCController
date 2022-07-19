@@ -82,7 +82,13 @@ void logUInt16(esp_spp_cb_param_t *param, const uint16_t *dataPtr){
 }
 
 void logRPM(esp_spp_cb_param_t *param){
-    sprintf(buffer, "RPM: %.3f", __BTData_ptr->controlData->rpmState_ptr->rpmCurr);
+    sprintf(buffer, "RPM0: %.3f", __BTData_ptr->controlData->rpmState_ptr[0].rpmCurr);
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+    sprintf(buffer, "RPM1: %.3f", __BTData_ptr->controlData->rpmState_ptr[1].rpmCurr);
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+    sprintf(buffer, "RPM2: %.3f", __BTData_ptr->controlData->rpmState_ptr[2].rpmCurr);
     esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
     esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
 }
@@ -200,9 +206,12 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
             const char c1[] = BT_MSG_SHUTDOWN;
             if (isEqual((char *)param->data_ind.data, (char *)c1, sizeof(c1)/sizeof(c1[0]) - 1)){
                 pwmConfigDes.pwmDes = 0;
+                rpmConfigDes.rpmDes = 0;
                 for (uint8_t i = 0; i < N_BLDC; i++){
                     pwmConfigDes.n = i;
+                    rpmConfigDes.n = i;
                     *(__BTData_ptr->controlData->pwmDes_ptr + i) = 0;
+                    __BTData_ptr->controlData->rpmState_ptr[i].rpmDes = 0;
                     logPWMConfig(param);
                 }; 
             }
@@ -215,19 +224,11 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
             const char c3[] = BT_MSG_SET_RPMDES;
             if (isEqual((char *)param->data_ind.data, (char *)c3, sizeof(c3)/sizeof(c3[0]) - 1)){
                 if (getRPM(param)){
-                    __BTData_ptr->controlData->rpmState_ptr->rpmDes = rpmConfigDes.rpmDes;
-                    __BTData_ptr->controlData->rpmState_ptr->rpmDes_isNew = true;
+                    __BTData_ptr->controlData->rpmState_ptr[rpmConfigDes.n].rpmDes = rpmConfigDes.rpmDes;
+                    __BTData_ptr->controlData->rpmState_ptr[rpmConfigDes.n].rpmDes_isNew = true;
                     logRPMConfig(param);
                 }; 
             }
-
-            // if (isEqual((char *)param->data_ind.data, (char *)c2, sizeof(c2)/sizeof(c2[0]) - 1)){
-            //     logFloat(param, __navDataBT_ptr->navData->eulerAngles_ptr,
-            //             3, 1/DEG2RAD, "ATT", 4);
-            // } else if (isEqual((char *)param->data_ind.data, (char *)c3, sizeof(c3)/sizeof(c3[0]) - 1)){
-            //     logFloat(param, __navDataBT_ptr->navData->M_ptr,
-            //             3, 1, "MAG", 4);
-            // }
 
         }
  

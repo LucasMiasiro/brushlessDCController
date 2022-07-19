@@ -13,7 +13,7 @@ struct controlData_ptr{
     uint16_t* pwmDes_ptr;
     rpmState* rpmState_ptr;
     // PID* pid_ptr;
-    SMC2* smc2_ptr;
+    // SMC2* smc2_ptr;
 };
 
 void controlTask(void*);
