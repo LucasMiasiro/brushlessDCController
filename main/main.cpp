@@ -45,7 +45,7 @@ extern "C" void app_main(void)
                             "Control Task",
                             4*1024,
                             &controlData,
-                            2,
+                            3,
                             &controlTask_h,
                             1);
 
@@ -55,7 +55,7 @@ extern "C" void app_main(void)
                             "Send Task",
                             4*1024,
                             &controlData,
-                            1,
+                            2,
                             &sendTask_h,
                             0);
 
@@ -142,7 +142,7 @@ void sendTask(void* Parameters){
 
 void readRPMTask(void* Parameters){
     controlData_ptr* controlData = (controlData_ptr*) Parameters;
-    rpmCounter rpm0(RPM0_GPIO);
+    rpmCounter rpm;
 
 #if LOG_TIMER
     int64_t start = esp_timer_get_time();
@@ -150,20 +150,17 @@ void readRPMTask(void* Parameters){
 #endif
 
     TickType_t startTimer = xTaskGetTickCount();
-    rpm0.getRPM(controlData->rpmState_ptr);
-    // TODO: Corrigir problema da leitura de RPM bloquear essa task
 
     while(1){
-        std::cout << "hey" << std::endl;
-        // rpm0.getRPM(controlData->rpmState_ptr);
-
-        // vTaskDelayUntil(&startTimer, SYSTEM_SAMPLE_PERIOD_MS/portTICK_PERIOD_MS);
+        rpm.getRPM(controlData->rpmState_ptr);
 
 #if LOG_TIMER
         dt = esp_timer_get_time() - start;
         start = esp_timer_get_time();
         serialLogger::logInt64(&dt, "DTRPM");
 #endif
+
+        vTaskDelayUntil(&startTimer, SYSTEM_SAMPLE_PERIOD_MS/portTICK_PERIOD_MS);
 
     }
 }

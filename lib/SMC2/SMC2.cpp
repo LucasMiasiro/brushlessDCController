@@ -18,7 +18,6 @@ uint8_t SMC2::boundOut(){
 }
 
 float SMC2::get(){
-    std::cout << "Getting ctrl" << std::endl;
     return out+offset;
 }
 

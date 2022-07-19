@@ -5,15 +5,33 @@
 #include "driver/pulse_cnt.h"
 #include "freq-count.h"
 #include "esp_timer.h"
+#include <iostream>
 
 static const char *TAG = "RPM";
 
+static int64_t start = esp_timer_get_time();
+static int64_t dt = 1000000;
+
+static pcnt_unit_handle_t pcnt_unit = NULL;
+
+//TODO: resolver o fato dessa função não funcionar pra múltiplos motores
 static bool pcnt_on_reach(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edata, void *user_ctx)
 {
     BaseType_t high_task_wakeup;
     QueueHandle_t queue = (QueueHandle_t)user_ctx;
     // send event data to queue, from this interrupt callback
     xQueueSendFromISR(queue, &(edata->watch_point_value), &high_task_wakeup);
+
+    dt = esp_timer_get_time() - start;
+    if (dt <= 1) {
+        dt = 1;
+    } else if (dt > 1000000) {
+        dt = 1000000;
+    }
+
+    start = esp_timer_get_time();
+    ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
+
     return (high_task_wakeup == pdTRUE);
 }
 
@@ -52,26 +70,9 @@ void rpmCounter::setup()
 
 void rpmCounter::getRPM(rpmState *rpm)
 {
-    int pulse_count = 0;
-    int event_count = 0;
-
-    int64_t start = esp_timer_get_time();
-    int64_t dt = 0;
-
-    while(1){
-        if (xQueueReceive(queue, &event_count, pdMS_TO_TICKS(RPM_WINDOW_MS))) {
-            ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &pulse_count));
-            // ESP_LOGI(TAG, "Watch point event, count: %d", pulse_count);
-            dt = esp_timer_get_time() - start;
-            rpm->rpmCurr = (pulse_count*(60.0f*1000000.0f))/dt;
-        } else {
-            ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &pulse_count));
-            // ESP_LOGI(TAG, "Pulse count: %d", pulse_count);
-            // rpm->rpmcurr = pulse_count*60.0f*(1000.0f/rpm_window_ms);
-            rpm->rpmCurr = 0.0f;
-        }
-        rpm->rpmCurr_isNew = true;
-        start = esp_timer_get_time();
-        ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
+    rpm->rpmCurr = (RPM_COUNT*60.0f*1000000.0f)/dt;
+    if (rpm->rpmCurr < 200) {
+        rpm->rpmCurr = 0;
     }
+    rpm->rpmCurr_isNew = true;
 }

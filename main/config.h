@@ -47,8 +47,10 @@
 #define RPM_MIN                         1200
 #define RPM_MAX                         10000
 #define RPM_COUNT                       3
-#define RPM_WINDOW_MS                   100
+#define RPM_WINDOW_MS                   11
 #define RPM0_GPIO                       0
+#define RPM1_GPIO                       1
+#define RPM2_GPIO                       2
 
 // PID
 #define BLDC_KP                         0.08f
