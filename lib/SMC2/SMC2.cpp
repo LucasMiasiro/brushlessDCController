@@ -40,7 +40,7 @@ void SMC2::update(float refin, float measin, float isNewin){
         sanityCount++;
     }
 
-    // Obs: É necessário que a hélice esteja rodando, quando se envia PWM_MIN
+    // OBS: É necessário que a hélice esteja rodando quando se envia PWM_MIN
     if (sanityCount >= BLDC_MAX_SANITY_COUNTER) {
         sanityCount = BLDC_MAX_SANITY_COUNTER; 
         out = 0;

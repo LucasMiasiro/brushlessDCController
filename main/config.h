@@ -2,7 +2,9 @@
 
 // Application Control
 #define SYSTEM_SAMPLE_PERIOD_MS         10
-#define APP_MODE                        0
+#define SEND_PERIOD_MS                  100
+#define APP_MODE                        1 // 0 -> Manual PWM Control
+                                          // 1 -> Close-loop BLDC Control
 
 #define SHOULD_LOG                      1
 #if SHOULD_LOG
@@ -45,10 +47,11 @@
 
 #define RPM_MAX_COUNT                   1000
 #define RPM_COUNT                       3
+#define RPM_COUNT_PER_REV               1
 #define RPM_MIN                         400
 #define RPM_MAX                         12000
-#define DT_MIN                          RPM_COUNT*60*1000000/RPM_MAX
-#define DT_MAX                          RPM_COUNT*60*1000000/RPM_MIN
+#define RPM_DT_MIN                      RPM_COUNT*60*1000000/(RPM_MAX)
+#define RPM_DT_MAX                      RPM_COUNT*60*1000000/(RPM_MIN)
 #define RPM0_GPIO                       0
 #define RPM1_GPIO                       4
 #define RPM2_GPIO                       15
@@ -67,20 +70,20 @@
 #define BLDC_FI                         100.0f
 #define BLDC_ERROR_FILTER               0
 #define BLDC_ERROR_FILTER_K             0.6f
-#define BLDC_MAX_SANITY_COUNTER         2000/SYSTEM_SAMPLE_PERIOD_MS // 2s
+#define BLDC_MAX_SANITY_COUNTER         1000/SYSTEM_SAMPLE_PERIOD_MS // 2s
 
 // Bluetooth
-#define SPP_TAG                         "PWM_CTRL"
-#define SPP_SERVER_NAME                 "PWM_CTRL_SERVER"
+#define SPP_TAG                         "BLDC_CTRL"
+#define SPP_SERVER_NAME                 "BLDC_CTRL_SERVER"
 #define BT_INIT_MSG                     "Connection stablished...\n"
 #define BT_RECEIVED_MSG                 "Received: "
 // #define BT_DEVICE_NAME                  "PWM Control"
-#define BT_DEVICE_NAME                  "PWM Control 2"
-#define BT_MSG_SET_PWMDES_DONE          "Setting PWM to: "
-#define BT_MSG_SET_RPMDES_DONE          "Setting RPM to: "
+#define BT_DEVICE_NAME                  "BLDC Control 2"
 #define BT_BUFFERSIZE                   32
 
 #define BT_MSG_SHUTDOWN                 "X"
 #define BT_MSG_GET_RPM                  "RGET"
 #define BT_MSG_SET_PWMDES               "PSET"
 #define BT_MSG_SET_RPMDES               "RSET"
+#define BT_MSG_SET_PWMDES_ALL           "ALLPSET"
+#define BT_MSG_SET_RPMDES_ALL           "ALLRSET"

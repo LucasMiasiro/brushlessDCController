@@ -9,7 +9,6 @@
 #include "freq-count.h"
 #include "PID.h"
 
-#if APP_MODE==0
 extern "C" void app_main(void)
 {
     #if LOG_MAIN
@@ -25,11 +24,9 @@ extern "C" void app_main(void)
                                         {0.0f, false, 0.0f, false}};
 
     // static PID pid0;
-    // static SMC2 smc2_0;
     static controlData_ptr controlData = {.pwmDes_ptr = &pwmDes[0],
                                           .rpmState_ptr = &rpmState[0] };
                                         //   .pid_ptr = &pid0};
-                                        //   .smc2_ptr = &smc2_0};
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
 
@@ -37,7 +34,7 @@ extern "C" void app_main(void)
                             "readRPM Task",
                             4*1024,
                             &controlData,
-                            3,
+                            4,
                             &readRPMTask_h,
                             1);
 
@@ -66,13 +63,6 @@ extern "C" void app_main(void)
 
 }
 
-#elif APP_MODE==1
-extern "C" void app_main(void)
-{
-}
-
-#endif
-
 void controlTask(void* Parameters){
     controlData_ptr* controlData = (controlData_ptr*) Parameters;
     bldc BLDC0(0), BLDC1(1), BLDC2(2);
@@ -86,6 +76,8 @@ void controlTask(void* Parameters){
     TickType_t startTimer = xTaskGetTickCount();
 
     while(1){
+
+#if APP_MODE==1
 
         // controlData->pid_ptr->update(controlData->rpmState_ptr->rpmDes,
         //                             controlData->rpmState_ptr->rpmCurr,
@@ -110,6 +102,8 @@ void controlTask(void* Parameters){
         controlData->rpmState_ptr[0].rpmCurr_isNew = false;
         controlData->rpmState_ptr[1].rpmCurr_isNew = false;
         controlData->rpmState_ptr[2].rpmCurr_isNew = false;
+
+#endif
 
         BLDC0.setPWM(*(controlData->pwmDes_ptr));
         BLDC1.setPWM(*(controlData->pwmDes_ptr + 1));
@@ -148,7 +142,7 @@ void sendTask(void* Parameters){
         serialLogger::logFloat(&(controlData->rpmState_ptr[2].rpmCurr), "RPMCURR2");
         serialLogger::blank_lines(1);
 
-        vTaskDelayUntil(&startTimer, SYSTEM_SAMPLE_PERIOD_MS/portTICK_PERIOD_MS);
+        vTaskDelayUntil(&startTimer, SEND_PERIOD_MS/portTICK_PERIOD_MS);
 
 // #if LOG_TIMER
 //         dt = esp_timer_get_time() - start;

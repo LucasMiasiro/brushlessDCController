@@ -230,6 +230,28 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
                 }; 
             }
 
+            const char c4[] = BT_MSG_SET_RPMDES_ALL;
+            if (isEqual((char *)param->data_ind.data, (char *)c4, sizeof(c4)/sizeof(c4[0]) - 1)){
+                if (getRPM(param)){
+                    for (uint8_t i = 0; i < N_BLDC; i++){
+                        rpmConfigDes.n = i;
+                        __BTData_ptr->controlData->rpmState_ptr[i].rpmDes = rpmConfigDes.rpmDes;
+                        logRPMConfig(param);
+                    }; 
+                }; 
+            }
+
+            const char c5[] = BT_MSG_SET_PWMDES_ALL;
+            if (isEqual((char *)param->data_ind.data, (char *)c5, sizeof(c5)/sizeof(c5[0]) - 1)){
+                if (getPWM(param)){
+                    for (uint8_t i = 0; i < N_BLDC; i++){
+                        pwmConfigDes.n = i;
+                        *(__BTData_ptr->controlData->pwmDes_ptr + i) = pwmConfigDes.pwmDes;
+                        logPWMConfig(param);
+                    }; 
+                }; 
+            }
+
         }
  
         break;

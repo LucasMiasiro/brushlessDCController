@@ -10,7 +10,7 @@
 static const char *TAG = "RPM";
 
 static int64_t start[3] = {esp_timer_get_time(), esp_timer_get_time(), esp_timer_get_time()};
-static int64_t dt[3] = {DT_MAX, DT_MAX, DT_MAX};
+static int64_t dt[3] = {RPM_DT_MAX, RPM_DT_MAX, RPM_DT_MAX};
 static bool rpmCurr_isNew[3] = {false, false, false};
 
 static pcnt_unit_handle_t pcnt_unit = NULL, pcnt_unit1 = NULL, pcnt_unit2 = NULL;
@@ -22,10 +22,10 @@ static bool pcnt_on_reach(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edat
     xQueueSendFromISR(queue, &(edata->watch_point_value), &high_task_wakeup);
 
     dt[0] = esp_timer_get_time() - start[0];
-    if (dt[0] <= DT_MIN) {
-        dt[0] = DT_MIN;
-    } else if (dt[0] > DT_MAX) {
-        dt[0] = DT_MAX;
+    if (dt[0] <= RPM_DT_MIN/RPM_COUNT_PER_REV) {
+        dt[0] = RPM_DT_MIN/RPM_COUNT_PER_REV;
+    } else if (dt[0] > RPM_DT_MAX/RPM_COUNT_PER_REV) {
+        dt[0] = RPM_DT_MAX/RPM_COUNT_PER_REV;
     }
 
     start[0] = esp_timer_get_time();
@@ -42,10 +42,10 @@ static bool pcnt_on_reach1(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *eda
     xQueueSendFromISR(queue, &(edata->watch_point_value), &high_task_wakeup);
 
     dt[1] = esp_timer_get_time() - start[1];
-    if (dt[1] <= DT_MIN) {
-        dt[1] = DT_MIN;
-    } else if (dt[1] > DT_MAX) {
-        dt[1] = DT_MAX;
+    if (dt[1] <= RPM_DT_MIN/RPM_COUNT_PER_REV) {
+        dt[1] = RPM_DT_MIN/RPM_COUNT_PER_REV;
+    } else if (dt[1] > RPM_DT_MAX/RPM_COUNT_PER_REV) {
+        dt[1] = RPM_DT_MAX/RPM_COUNT_PER_REV;
     }
 
     start[1] = esp_timer_get_time();
@@ -62,10 +62,10 @@ static bool pcnt_on_reach2(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *eda
     xQueueSendFromISR(queue, &(edata->watch_point_value), &high_task_wakeup);
 
     dt[2] = esp_timer_get_time() - start[2];
-    if (dt[2] <= DT_MIN) {
-        dt[2] = DT_MIN;
-    } else if (dt[2] > DT_MAX) {
-        dt[2] = DT_MAX;
+    if (dt[2] <= RPM_DT_MIN/RPM_COUNT_PER_REV) {
+        dt[2] = RPM_DT_MIN/RPM_COUNT_PER_REV;
+    } else if (dt[2] > RPM_DT_MAX/RPM_COUNT_PER_REV) {
+        dt[2] = RPM_DT_MAX/RPM_COUNT_PER_REV;
     }
 
     start[2] = esp_timer_get_time();
@@ -135,7 +135,7 @@ void rpmCounter::setup()
 void rpmCounter::getRPM(rpmState *rpm)
 {
     for (uint8_t i = 0; i < N_BLDC; i++){
-        rpm[i].rpmCurr = (RPM_COUNT*60.0f*1000000.0f)/dt[i];
+        rpm[i].rpmCurr = (RPM_COUNT*60.0f*1000000.0f)/(dt[i]*RPM_COUNT_PER_REV);
         if (rpm[i].rpmCurr <= RPM_MIN*1.05) {
             rpm[i].rpmCurr = 0;
         }
