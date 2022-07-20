@@ -1,7 +1,7 @@
 #pragma once
 
 // Application Control
-#define SYSTEM_SAMPLE_PERIOD_MS         100 // TODO
+#define SYSTEM_SAMPLE_PERIOD_MS         10
 #define APP_MODE                        0
 
 #define SHOULD_LOG                      1
@@ -44,13 +44,14 @@
 #define BLDC2_OPR                       MCPWM_GEN_A
 
 #define RPM_MAX_COUNT                   1000
-#define RPM_MIN                         1200
-#define RPM_MAX                         10000
 #define RPM_COUNT                       3
-#define RPM_WINDOW_MS                   11
+#define RPM_MIN                         400
+#define RPM_MAX                         12000
+#define DT_MIN                          RPM_COUNT*60*1000000/RPM_MAX
+#define DT_MAX                          RPM_COUNT*60*1000000/RPM_MIN
 #define RPM0_GPIO                       0
-#define RPM1_GPIO                       1
-#define RPM2_GPIO                       2
+#define RPM1_GPIO                       4
+#define RPM2_GPIO                       15
 
 // PID
 #define BLDC_KP                         0.08f
@@ -66,6 +67,7 @@
 #define BLDC_FI                         100.0f
 #define BLDC_ERROR_FILTER               0
 #define BLDC_ERROR_FILTER_K             0.6f
+#define BLDC_MAX_SANITY_COUNTER         2000/SYSTEM_SAMPLE_PERIOD_MS // 2s
 
 // Bluetooth
 #define SPP_TAG                         "PWM_CTRL"

@@ -34,6 +34,22 @@ void SMC2::update(float refin, float measin, float isNewin){
         return;
     }
 
+    if (isNew) {
+        sanityCount = 0;
+    } else {
+        sanityCount++;
+    }
+
+    // Obs: É necessário que a hélice esteja rodando, quando se envia PWM_MIN
+    if (sanityCount >= BLDC_MAX_SANITY_COUNTER) {
+        sanityCount = BLDC_MAX_SANITY_COUNTER; 
+        out = 0;
+        e_prev = 0;
+        F2_dot_prev = 0;
+        F2 = 0;
+        return;
+    }
+
     // Phase 1 - Sliding Surface
     e = ref - meas;
     #if BLDC_ERROR_FILTER

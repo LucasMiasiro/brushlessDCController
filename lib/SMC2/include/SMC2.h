@@ -29,6 +29,7 @@ private:
     float out = 0.0f;
     // float dt_accum{0.0f};
     float offset{PWM_MIN};
+    uint16_t sanityCount = 0;
     uint8_t boundOut();
 public:
     SMC2(){};

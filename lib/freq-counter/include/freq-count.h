@@ -11,6 +11,8 @@ private:
     const uint8_t GPIO1{RPM1_GPIO};
     const uint8_t GPIO2{RPM2_GPIO};
     QueueHandle_t queue;
+    QueueHandle_t queue1;
+    QueueHandle_t queue2;
     // static bool pcnt_on_reach(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edata, void *user_ctx);
 public:
     rpmCounter() {
