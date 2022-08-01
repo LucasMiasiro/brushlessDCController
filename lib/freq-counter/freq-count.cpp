@@ -15,7 +15,8 @@ static bool rpmCurr_isNew[3] = {false, false, false};
 
 static pcnt_unit_handle_t pcnt_unit = NULL, pcnt_unit1 = NULL, pcnt_unit2 = NULL;
 
-static bool pcnt_on_reach(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edata, void *user_ctx)
+// static bool pcnt_on_reach(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edata, void *user_ctx)
+static bool pcnt_on_reach(pcnt_unit_t *unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
 {
     BaseType_t high_task_wakeup;
     QueueHandle_t queue = (QueueHandle_t)user_ctx;
@@ -35,7 +36,8 @@ static bool pcnt_on_reach(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edat
     return (high_task_wakeup == pdTRUE);
 }
 
-static bool pcnt_on_reach1(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edata, void *user_ctx)
+// static bool pcnt_on_reach1(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edata, void *user_ctx)
+static bool pcnt_on_reach1(pcnt_unit_t *unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
 {
     BaseType_t high_task_wakeup;
     QueueHandle_t queue = (QueueHandle_t)user_ctx;
@@ -55,7 +57,8 @@ static bool pcnt_on_reach1(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *eda
     return (high_task_wakeup == pdTRUE);
 }
 
-static bool pcnt_on_reach2(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edata, void *user_ctx)
+// static bool pcnt_on_reach2(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edata, void *user_ctx)
+static bool pcnt_on_reach2(pcnt_unit_t *unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
 {
     BaseType_t high_task_wakeup;
     QueueHandle_t queue = (QueueHandle_t)user_ctx;
