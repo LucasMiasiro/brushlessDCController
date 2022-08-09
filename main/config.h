@@ -21,7 +21,8 @@
 #define BUILTIN_LED                     GPIO_NUM_2
 #define MAX_PWM                         2500
 #define N_BLDC                          3
-#define PWM_MIN                         1000.0f
+#define PWM_IDLE                        800.0f
+#define PWM_MIN                         1200.0f
 #define PWM_DELTA                       1000.0f
 
 #define BLDC0_UNIT                      MCPWM_UNIT_0

@@ -27,7 +27,11 @@ void SMC2::update(float refin, float measin, float isNewin){
     this->isNew = isNewin;
 
     if (ref < minIn) {
-        out = -offset;
+        if (ref < 0.9f) {
+            out = -offset;
+        } else {
+            out = -offset + pwm_idle;
+        }
         e_prev = 0;
         F2_dot_prev = 0;
         F2 = 0;

@@ -73,6 +73,10 @@ void controlTask(void* Parameters){
     int64_t dt = 0;
 #endif
 
+    BLDC0.setPWM(*(controlData->pwmDes_ptr));
+    BLDC1.setPWM(*(controlData->pwmDes_ptr + 1));
+    BLDC2.setPWM(*(controlData->pwmDes_ptr + 2));
+
     TickType_t startTimer = xTaskGetTickCount();
 
     while(1){

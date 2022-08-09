@@ -85,7 +85,7 @@ void rpmCounter::setup()
     ESP_ERROR_CHECK(pcnt_new_unit(&unit_config, &pcnt_unit1));
     ESP_ERROR_CHECK(pcnt_new_unit(&unit_config, &pcnt_unit2));
 
-    pcnt_glitch_filter_config_t filter_config = {.max_glitch_ns = 500};
+    pcnt_glitch_filter_config_t filter_config = {.max_glitch_ns = 200};
     ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(pcnt_unit, &filter_config));
     ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(pcnt_unit1, &filter_config));
     ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(pcnt_unit2, &filter_config));
