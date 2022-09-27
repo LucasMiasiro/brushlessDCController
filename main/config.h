@@ -57,6 +57,12 @@
 #define RPM1_GPIO                       4
 #define RPM2_GPIO                       15
 
+// Encoder
+
+#define ECD_MAX_COUNT                   1000000
+#define ECD0A_GPIO                      0
+#define ECD0B_GPIO                      4
+
 // PID
 #define BLDC_KP                         0.08f
 #define BLDC_KI                         0.3f
