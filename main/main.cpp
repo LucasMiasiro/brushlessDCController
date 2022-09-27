@@ -52,7 +52,7 @@ extern "C" void app_main(void)
 }
 
 void sendTask(void* Parameters){
-    // controlData_ptr* controlData = (controlData_ptr*) Parameters;
+    controlData_ptr* controlData = (controlData_ptr*) Parameters;
     TickType_t startTimer = xTaskGetTickCount();
 
 #if LOG_TIMER
@@ -62,7 +62,7 @@ void sendTask(void* Parameters){
 
     while(1){
 
-        // serialLogger::logUInt16(controlData->pwmDes_ptr, "PWMDES0");
+        serialLogger::logFloat(controlData->currAngle_ptr, "CURRANG");
         serialLogger::blank_lines(1);
 
         vTaskDelayUntil(&startTimer, SEND_PERIOD_MS/portTICK_PERIOD_MS);
@@ -78,7 +78,7 @@ void sendTask(void* Parameters){
 
 void readEncoderTask(void* Parameters){
     controlData_ptr* controlData = (controlData_ptr*) Parameters;
-    // encoderReader ECDReader;
+    encoderReader ECDReader;
 
 #if LOG_TIMER
     int64_t start = esp_timer_get_time();
@@ -88,7 +88,7 @@ void readEncoderTask(void* Parameters){
     TickType_t startTimer = xTaskGetTickCount();
 
     while(1){
-        // rpm.getRPM(controlData->rpmState_ptr);
+        ECDReader.getCurrAngle(controlData->currAngle_ptr);
 
 #if LOG_TIMER
         dt = esp_timer_get_time() - start;

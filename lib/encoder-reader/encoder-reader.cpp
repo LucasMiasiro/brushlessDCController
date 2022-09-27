@@ -10,6 +10,7 @@
 static const char *TAG = "ECD";
 
 static pcnt_unit_handle_t pcnt_unit = NULL, pcnt_unit1 = NULL, pcnt_unit2 = NULL;
+static int count;
 
 static bool pcnt_on_reach(pcnt_unit_t *unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
 {
@@ -69,5 +70,6 @@ void encoderReader::setup()
 
 void encoderReader::getCurrAngle(float *currAngle)
 {
-    *currAngle = 0.0f;
+    ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &count));
+    *currAngle = (float)count;
 }

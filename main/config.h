@@ -1,7 +1,7 @@
 #pragma once
 
 // Application Control
-#define SYSTEM_SAMPLE_PERIOD_MS         10
+#define SYSTEM_SAMPLE_PERIOD_MS         100
 #define SEND_PERIOD_MS                  100
 #define APP_MODE                        1 // 0 -> Manual PWM Control
                                           // 1 -> Close-loop BLDC Control
@@ -59,9 +59,9 @@
 
 // Encoder
 
-#define ECD_MAX_COUNT                   1000000
-#define ECD0A_GPIO                      0
-#define ECD0B_GPIO                      4
+#define ECD_MAX_COUNT                   10000
+#define ECD0A_GPIO                      4
+#define ECD0B_GPIO                      15
 
 // PID
 #define BLDC_KP                         0.08f
