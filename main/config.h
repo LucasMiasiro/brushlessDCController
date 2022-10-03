@@ -62,6 +62,7 @@
 #define ECD_MAX_COUNT                   10000
 #define ECD0A_GPIO                      4
 #define ECD0B_GPIO                      18
+#define ECD_TICKS                       2000.0f
 
 // PID
 #define BLDC_KP                         0.08f
