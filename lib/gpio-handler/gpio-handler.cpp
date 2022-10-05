@@ -41,7 +41,7 @@ void builtin_led::blink(int n, bool endHigh){
     }
 }
 
-void bldc::setup(){
+void bldc::setup(){ // Funcionando na versão 5.1 da ESP-IDF. Eventualmente o código precisa ser atualizado
 
     mcpwm_config_t pwm_config = {
         .frequency = 50,
