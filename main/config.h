@@ -58,11 +58,17 @@
 #define RPM2_GPIO                       15
 
 // Encoder
-
 #define ECD_MAX_COUNT                   20000
 #define ECD0A_GPIO                      4
 #define ECD0B_GPIO                      18
 #define ECD_TICKS                       2000.0f
+
+// Step Motor
+#define SM_TIMER_RESOLUTION             1000000 // 1 MHz (1 us per tick)
+#define SM_TIMER_PERIOD                 20000 // 20000 ticks (20 ms) 50 Hz)
+#define SM_PULSE_WIDTH                  2000  // 2000 ticks (2 ms)
+#define SM_PULSE_GPIO                   19
+#define SM_DIR_GPIO                     17
 
 // PID
 #define BLDC_KP                         0.08f

@@ -8,6 +8,7 @@
 #include "esp_timer.h"
 // #include "freq-count.h"
 #include "encoder-reader.h"
+#include "step-motor.h"
 #include "PID.h"
 
 extern "C" void app_main(void)
@@ -79,6 +80,7 @@ void sendTask(void* Parameters){
 void readEncoderTask(void* Parameters){
     controlData_ptr* controlData = (controlData_ptr*) Parameters;
     encoderReader ECDReader;
+    stepMotor Motor;
 
 #if LOG_TIMER
     int64_t start = esp_timer_get_time();

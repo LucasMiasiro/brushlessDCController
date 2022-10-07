@@ -1,5 +1,5 @@
 #include "driver/gpio.h"
-#include "driver/mcpwm.h"
+// #include "driver/mcpwm.h"
 #include "gpio-handler.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -41,47 +41,47 @@ void builtin_led::blink(int n, bool endHigh){
     }
 }
 
-void bldc::setup(){
+// void bldc::setup(){
 
-    mcpwm_config_t pwm_config = {
-        .frequency = 50,
-        .cmpr_a = 0,     // Initial duty cycle of PWM0A
-        .cmpr_b = 0,     // Initial duty cycle of PWM0B
-        .duty_mode = MCPWM_DUTY_MODE_0,
-        .counter_mode = MCPWM_UP_COUNTER,
-    };
+//     mcpwm_config_t pwm_config = {
+//         .frequency = 50,
+//         .cmpr_a = 0,     // Initial duty cycle of PWM0A
+//         .cmpr_b = 0,     // Initial duty cycle of PWM0B
+//         .duty_mode = MCPWM_DUTY_MODE_0,
+//         .counter_mode = MCPWM_UP_COUNTER,
+//     };
 
-    switch (n) {
-        case 0:
-            mcpwm_gpio_init(BLDC0_UNIT, BLDC0_IO, BLDC0_GPIO);
-            pwm_config.frequency = BLDC0_FREQ;
-            mcpwm_init(BLDC0_UNIT, BLDC0_TIMER, &pwm_config);
-            break;
+//     switch (n) {
+//         case 0:
+//             mcpwm_gpio_init(BLDC0_UNIT, BLDC0_IO, BLDC0_GPIO);
+//             pwm_config.frequency = BLDC0_FREQ;
+//             mcpwm_init(BLDC0_UNIT, BLDC0_TIMER, &pwm_config);
+//             break;
 
-        case 1:
-            mcpwm_gpio_init(BLDC1_UNIT, BLDC1_IO, BLDC1_GPIO);
-            pwm_config.frequency = BLDC1_FREQ;
-            mcpwm_init(BLDC1_UNIT, BLDC1_TIMER, &pwm_config);
-            break;
+//         case 1:
+//             mcpwm_gpio_init(BLDC1_UNIT, BLDC1_IO, BLDC1_GPIO);
+//             pwm_config.frequency = BLDC1_FREQ;
+//             mcpwm_init(BLDC1_UNIT, BLDC1_TIMER, &pwm_config);
+//             break;
 
-        case 2:
-            mcpwm_gpio_init(BLDC2_UNIT, BLDC2_IO, BLDC2_GPIO);
-            pwm_config.frequency = BLDC2_FREQ;
-            mcpwm_init(BLDC2_UNIT, BLDC2_TIMER, &pwm_config);
-            break;
-    }
-}
+//         case 2:
+//             mcpwm_gpio_init(BLDC2_UNIT, BLDC2_IO, BLDC2_GPIO);
+//             pwm_config.frequency = BLDC2_FREQ;
+//             mcpwm_init(BLDC2_UNIT, BLDC2_TIMER, &pwm_config);
+//             break;
+//     }
+// }
 
-void bldc::setPWM(uint16_t pwmDes){
-    switch (n) {
-        case 0:
-            mcpwm_set_duty_in_us(BLDC0_UNIT, BLDC0_TIMER, BLDC0_OPR, pwmDes);
-            break;
-        case 1:
-            mcpwm_set_duty_in_us(BLDC1_UNIT, BLDC1_TIMER, BLDC1_OPR, pwmDes);
-            break;
-        case 2:
-            mcpwm_set_duty_in_us(BLDC2_UNIT, BLDC2_TIMER, BLDC2_OPR, pwmDes);
-            break;
-    }
-}
+// void bldc::setPWM(uint16_t pwmDes){
+//     switch (n) {
+//         case 0:
+//             mcpwm_set_duty_in_us(BLDC0_UNIT, BLDC0_TIMER, BLDC0_OPR, pwmDes);
+//             break;
+//         case 1:
+//             mcpwm_set_duty_in_us(BLDC1_UNIT, BLDC1_TIMER, BLDC1_OPR, pwmDes);
+//             break;
+//         case 2:
+//             mcpwm_set_duty_in_us(BLDC2_UNIT, BLDC2_TIMER, BLDC2_OPR, pwmDes);
+//             break;
+//     }
+// }
