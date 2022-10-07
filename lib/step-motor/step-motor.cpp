@@ -52,15 +52,16 @@ void stepMotor::setup(){
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     gpio_config(&io_conf);
 
+    // mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP);
 }
 
 void stepMotor::up(){
-    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_STOP_EMPTY);
+    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP);
     gpio_set_level(dir_gpio, 1);
 }
 
 void stepMotor::down(){
-    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_STOP_EMPTY);
+    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP);
     gpio_set_level(dir_gpio, 0);
 }
 
