@@ -91,6 +91,13 @@ void readEncoderTask(void* Parameters){
 
     while(1){
         ECDReader.getCurrAngle(controlData->currAngle_ptr);
+        Motor.up();
+
+        // if (*(controlData->currAngle_ptr) < 20.0f){
+        //     Motor.up();
+        // } else {
+        //     // Motor.down();
+        // }
 
 #if LOG_TIMER
         dt = esp_timer_get_time() - start;

@@ -43,5 +43,28 @@ void stepMotor::setup(){
                     MCPWM_GEN_COMPARE_EVENT_ACTION_END());
     
     mcpwm_timer_enable(timer);
-    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP);
+
+    gpio_config_t io_conf = {};
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    io_conf.pin_bit_mask = (1ULL << SM_DIR_GPIO);
+    io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    gpio_config(&io_conf);
+
+}
+
+void stepMotor::up(){
+    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_STOP_EMPTY);
+    gpio_set_level(dir_gpio, 1);
+}
+
+void stepMotor::down(){
+    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_STOP_EMPTY);
+    gpio_set_level(dir_gpio, 0);
+}
+
+void stepMotor::stop(){
+    mcpwm_timer_start_stop(timer, MCPWM_TIMER_STOP_EMPTY);
+    gpio_set_level(dir_gpio, 0);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 // Application Control
-#define SYSTEM_SAMPLE_PERIOD_MS         100
+#define SYSTEM_SAMPLE_PERIOD_MS         1
 #define SEND_PERIOD_MS                  100
 #define APP_MODE                        1 // 0 -> Manual PWM Control
                                           // 1 -> Close-loop BLDC Control
@@ -59,16 +59,18 @@
 
 // Encoder
 #define ECD_MAX_COUNT                   20000
-#define ECD0A_GPIO                      4
-#define ECD0B_GPIO                      18
+#define ECD0A_GPIO                      18
+#define ECD0B_GPIO                      4
 #define ECD_TICKS                       2000.0f
 
 // Step Motor
 #define SM_TIMER_RESOLUTION             1000000 // 1 MHz (1 us per tick)
-#define SM_TIMER_PERIOD                 20000 // 20000 ticks (20 ms) 50 Hz)
-#define SM_PULSE_WIDTH                  2000  // 2000 ticks (2 ms)
+#define SM_TIMER_PERIOD                 20000 // 1000 ticks (1000 us) (1000 Hz)
+#define SM_PULSE_WIDTH                  2000  // 100 ticks  (100 us)
+// #define SM_TIMER_PERIOD                 990 // 1000 ticks (1000 us) (1000 Hz)
+// #define SM_PULSE_WIDTH                  100  // 100 ticks  (100 us)
 #define SM_PULSE_GPIO                   19
-#define SM_DIR_GPIO                     17
+#define SM_DIR_GPIO                     GPIO_NUM_17
 
 // PID
 #define BLDC_KP                         0.08f
