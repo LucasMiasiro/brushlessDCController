@@ -7,7 +7,7 @@ struct controlData_ptr{
     float* currAngle_ptr;
     float* desAngle_ptr;
     bool* setZero_ptr;
-    bool* shouldStop_ptr;
+    bool* killSwitch_ptr;
 };
 
 enum controlMode {

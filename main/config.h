@@ -71,8 +71,9 @@
 #define SM_PULSE_WIDTH                  100  // 100 ticks  (100 us)
 #define SM_PULSE_GPIO                   19
 #define SM_DIR_GPIO                     GPIO_NUM_17
-#define SM_ANG_TOL                      0.10f
-#define SM_ANG_MAX                      45.0f
+#define SM_ANG_TOL                      0.12f
+#define SM_ANG_MAX                      60.0f
+#define SM_WATCHDOG_COUNTER_MAX         2000;
 
 // PID
 #define BLDC_KP                         0.08f
@@ -91,12 +92,12 @@
 #define BLDC_MAX_SANITY_COUNTER         1000/SYSTEM_SAMPLE_PERIOD_MS // 2s
 
 // Bluetooth
-#define SPP_TAG                         "BLDC_CTRL"
-#define SPP_SERVER_NAME                 "BLDC_CTRL_SERVER"
+#define SPP_TAG                         "SM_CTRL"
+#define SPP_SERVER_NAME                 "SM_CTRL_SERVER"
 #define BT_INIT_MSG                     "Connection stablished...\n"
 #define BT_RECEIVED_MSG                 "Received: "
 // #define BT_DEVICE_NAME                  "PWM Control"
-#define BT_DEVICE_NAME                  "BLDC Control 2"
+#define BT_DEVICE_NAME                  "LAE - Stepper Motor Control"
 #define BT_BUFFERSIZE                   32
 
 #define BT_MSG_SHUTDOWN                 "X"

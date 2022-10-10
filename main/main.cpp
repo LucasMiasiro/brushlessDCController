@@ -21,13 +21,13 @@ extern "C" void app_main(void)
 
     static TaskHandle_t sendTask_h = NULL, controlTask_h = NULL;
     static float currAngle = {0.0f}, desAngle = {0.0f};
-    static bool setZero = false, shouldStop = true;
+    static bool setZero = false, killSwitch = true;
 
     // static PID pid0;
     static controlData_ptr controlData = {.currAngle_ptr = &currAngle,
                                           .desAngle_ptr = &desAngle,
                                           .setZero_ptr = &setZero,
-                                          .shouldStop_ptr = &shouldStop};
+                                          .killSwitch_ptr = &killSwitch};
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
 
@@ -86,7 +86,9 @@ void controlTask(void* Parameters){
     encoderReader ECDReader;
     stepMotor stepMotor;
     controlMode currMode = STOP, prevMode = STOP;
-    float angError = 0.0f;
+    float angError = 0.0f, prevMeas = 0.0f;
+    const uint32_t watchdogCounter_max = SM_WATCHDOG_COUNTER_MAX;
+    uint32_t watchdogCounter = 0;
 
 #if LOG_TIMER
     int64_t start = esp_timer_get_time();
@@ -97,13 +99,22 @@ void controlTask(void* Parameters){
 
     while(1){
 
-        if (*(controlData->shouldStop_ptr)) {
+        if (*(controlData->killSwitch_ptr)) {
             prevMode = STOP;
             currMode = STOP;
         }
 
+        if (watchdogCounter > watchdogCounter_max) {
+            *(controlData->killSwitch_ptr) = true;
+        }
+
+        prevMeas = *(controlData->currAngle_ptr);
         ECDReader.getCurrAngle(controlData->currAngle_ptr,
                               *(controlData->setZero_ptr));
+        
+        if (abs(prevMeas - *(controlData->currAngle_ptr)) > 0.0001f) {
+            watchdogCounter = 0;
+        }
 
         if (*(controlData->setZero_ptr)) {
             *(controlData->desAngle_ptr) = 0.0f;
@@ -115,8 +126,7 @@ void controlTask(void* Parameters){
 
         angError = *(controlData->desAngle_ptr) - *(controlData->currAngle_ptr);
 
-        switch (currMode)
-        {
+        switch (currMode) {
         case STOP:
             stepMotor.stop();
             if (angError > SM_ANG_TOL) {
@@ -149,6 +159,7 @@ void controlTask(void* Parameters){
                 stepMotor.stop();
                 prevMode = GO;
                 currMode = STOP;
+                *(controlData->killSwitch_ptr) = true;
                 break;
             }
 
@@ -174,6 +185,7 @@ void controlTask(void* Parameters){
 
             // Acionar o motor, caso esteja tudo de acordo e o erro tenha se
             // mantido coerente
+            watchdogCounter++;
             stepMotor.go();
             break;
 
