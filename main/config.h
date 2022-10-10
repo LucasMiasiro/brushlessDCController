@@ -73,7 +73,7 @@
 #define SM_DIR_GPIO                     GPIO_NUM_17
 #define SM_ANG_TOL                      0.12f
 #define SM_ANG_MAX                      60.0f
-#define SM_WATCHDOG_COUNTER_MAX         2000;
+#define SM_WATCHDOG_COUNTER_MAX         5000;
 
 // PID
 #define BLDC_KP                         0.08f
@@ -101,8 +101,16 @@
 #define BT_BUFFERSIZE                   32
 
 #define BT_MSG_SHUTDOWN                 "X"
+#define BT_MSG_SHUTDOWN_B               "DISARM"
+#define BT_MSG_ARM                      "ARM"
 #define BT_MSG_GET_RPM                  "RGET"
 #define BT_MSG_SET_PWMDES               "PSET"
 #define BT_MSG_SET_RPMDES               "RSET"
 #define BT_MSG_SET_PWMDES_ALL           "ALLPSET"
 #define BT_MSG_SET_RPMDES_ALL           "ALLRSET"
+
+#define BT_MSG_SET_ZERO                 "ZEROSET"
+#define BT_MSG_BT_BP_ANGMAX             "BPANGMAX"
+#define BT_MSG_SET_ANGDES               "ANGSET"
+#define BT_MSG_GET_ANG                  "ANGGET"
+#define BT_MSG_GET_CONTROLMODE          "CTMDGET"

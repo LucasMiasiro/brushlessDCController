@@ -4,7 +4,7 @@
 #include "serial-logger.h"
 #include "main.h"
 #include "config.h"
-// #include "BT.cpp"
+#include "BT.cpp"
 #include "esp_timer.h"
 // #include "freq-count.h"
 #include "encoder-reader.h"
@@ -21,13 +21,16 @@ extern "C" void app_main(void)
 
     static TaskHandle_t sendTask_h = NULL, controlTask_h = NULL;
     static float currAngle = {0.0f}, desAngle = {0.0f};
-    static bool setZero = false, killSwitch = true;
+    static bool setZero = false, killSwitch = true, bypassAngMax = false;
 
     // static PID pid0;
     static controlData_ptr controlData = {.currAngle_ptr = &currAngle,
                                           .desAngle_ptr = &desAngle,
                                           .setZero_ptr = &setZero,
-                                          .killSwitch_ptr = &killSwitch};
+                                          .killSwitch_ptr = &killSwitch,
+                                          .bypassAngMax_ptr = &bypassAngMax,
+                                          .controlMode_ptr = NULL,
+                                          };
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
 
@@ -49,10 +52,10 @@ extern "C" void app_main(void)
                             &sendTask_h,
                             0);
 
-    // static serialBTLogger::BTData_ptr BTData = {.controlData = &controlData,
-    //                                             .controlTask_h = &controlTask_h};
+    static serialBTLogger::BTData_ptr BTData = {.controlData = &controlData,
+                                            .controlTask_h = &controlTask_h};
 
-    // serialBTLogger::startBT(&BTData);
+    serialBTLogger::startBT(&BTData);
 
 }
 
@@ -68,6 +71,9 @@ void sendTask(void* Parameters){
     while(1){
 
         serialLogger::logFloat(controlData->currAngle_ptr, "CURRANG");
+        serialLogger::logFloat(controlData->desAngle_ptr, "DESANG");
+        serialLogger::logUInt8((uint8_t*)(controlData->controlMode_ptr), "CTRLMODE");
+        serialLogger::logUInt8((uint8_t*)(controlData->killSwitch_ptr), "KILLSWITCH");
         serialLogger::blank_lines(1);
 
         vTaskDelayUntil(&startTimer, SEND_PERIOD_MS/portTICK_PERIOD_MS);
@@ -86,6 +92,7 @@ void controlTask(void* Parameters){
     encoderReader ECDReader;
     stepMotor stepMotor;
     controlMode currMode = STOP, prevMode = STOP;
+    controlData->controlMode_ptr = &currMode;
     float angError = 0.0f, prevMeas = 0.0f;
     const uint32_t watchdogCounter_max = SM_WATCHDOG_COUNTER_MAX;
     uint32_t watchdogCounter = 0;
@@ -106,6 +113,7 @@ void controlTask(void* Parameters){
 
         if (watchdogCounter > watchdogCounter_max) {
             *(controlData->killSwitch_ptr) = true;
+            watchdogCounter = 0;
         }
 
         prevMeas = *(controlData->currAngle_ptr);
@@ -154,8 +162,9 @@ void controlTask(void* Parameters){
         
         case GO:
             // Se passar do ângulo máximo de segurança, parar o motor
-            if (*(controlData->currAngle_ptr) < -SM_ANG_MAX
-                || *(controlData->currAngle_ptr) > SM_ANG_MAX){
+            if ( !*(controlData->bypassAngMax_ptr)
+                && ( *(controlData->currAngle_ptr) < -SM_ANG_MAX
+                     || *(controlData->currAngle_ptr) > SM_ANG_MAX )){
                 stepMotor.stop();
                 prevMode = GO;
                 currMode = STOP;
