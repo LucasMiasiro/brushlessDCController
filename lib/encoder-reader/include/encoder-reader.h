@@ -14,5 +14,5 @@ public:
     encoderReader() {
         setup();
     };
-    void getCurrAngle(float *currAngle);
+    void getCurrAngle(float *currAngle, bool setZero);
 };

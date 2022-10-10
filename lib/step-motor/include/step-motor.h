@@ -12,7 +12,8 @@ class stepMotor{
     gpio_num_t dir_gpio = SM_DIR_GPIO;
 public:
     stepMotor() {setup();};
-    void up();
-    void down();
+    void setUp();
+    void setDown();
+    void go();
     void stop();
 };

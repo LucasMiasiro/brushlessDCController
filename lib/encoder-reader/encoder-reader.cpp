@@ -71,8 +71,11 @@ void encoderReader::setup()
 }
 
 
-void encoderReader::getCurrAngle(float *currAngle)
+void encoderReader::getCurrAngle(float *currAngle, bool setZero)
 {
-    ESP_ERROR_CHECK(pcnt_unit_get_count(pcnt_unit, &count));
+    if (setZero) {
+        pcnt_unit_clear_count(pcnt_unit);
+    }
+    pcnt_unit_get_count(pcnt_unit, &count);
     *currAngle = (float)count/4.0f*(360.0f/ECD_TICKS);
 }

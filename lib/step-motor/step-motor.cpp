@@ -55,14 +55,16 @@ void stepMotor::setup(){
     // mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP);
 }
 
-void stepMotor::up(){
-    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP);
+void stepMotor::setUp(){
     gpio_set_level(dir_gpio, 1);
 }
 
-void stepMotor::down(){
-    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP);
+void stepMotor::setDown(){
     gpio_set_level(dir_gpio, 0);
+}
+
+void stepMotor::go(){
+    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP);
 }
 
 void stepMotor::stop(){

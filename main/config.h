@@ -71,6 +71,8 @@
 #define SM_PULSE_WIDTH                  100  // 100 ticks  (100 us)
 #define SM_PULSE_GPIO                   19
 #define SM_DIR_GPIO                     GPIO_NUM_17
+#define SM_ANG_TOL                      0.10f
+#define SM_ANG_MAX                      45.0f
 
 // PID
 #define BLDC_KP                         0.08f
