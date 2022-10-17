@@ -9,6 +9,13 @@ enum controlMode {
     GO
 };
 
+struct rpmState{
+    float rpmCurr;
+    bool rpmCurr_isNew;
+    float rpmDes;
+    bool rpmDes_isNew;
+};
+
 struct controlData_ptr{
     float* currAngle_ptr;
     float* desAngle_ptr;
@@ -16,6 +23,7 @@ struct controlData_ptr{
     bool* killSwitch_ptr;
     bool* bypassAngMax_ptr;
     controlMode* controlMode_ptr;
+    rpmState* rpmState_ptr;
 };
 
 

@@ -6,7 +6,7 @@
 #include "config.h"
 #include "BT.cpp"
 #include "esp_timer.h"
-// #include "freq-count.h"
+#include "freq-count.h"
 #include "encoder-reader.h"
 #include "step-motor.h"
 #include "PID.h"
@@ -23,6 +23,8 @@ extern "C" void app_main(void)
     static float currAngle = {0.0f}, desAngle = {0.0f};
     static bool setZero = false, killSwitch = true, bypassAngMax = false;
 
+    static rpmState rpmState = {0.0f, false, 0.0f, false};
+
     // static PID pid0;
     static controlData_ptr controlData = {.currAngle_ptr = &currAngle,
                                           .desAngle_ptr = &desAngle,
@@ -30,6 +32,7 @@ extern "C" void app_main(void)
                                           .killSwitch_ptr = &killSwitch,
                                           .bypassAngMax_ptr = &bypassAngMax,
                                           .controlMode_ptr = NULL,
+                                          .rpmState_ptr = &rpmState,
                                           };
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
@@ -96,6 +99,7 @@ void controlTask(void* Parameters){
     float angError = 0.0f, prevMeas = 0.0f;
     const uint32_t watchdogCounter_max = SM_WATCHDOG_COUNTER_MAX;
     uint32_t watchdogCounter = 0;
+    rpmCounter RPM;
 
 #if LOG_TIMER
     int64_t start = esp_timer_get_time();
@@ -105,6 +109,7 @@ void controlTask(void* Parameters){
     TickType_t startTimer = xTaskGetTickCount();
 
     while(1){
+        RPM.getRPM(controlData->rpmState_ptr);
 
         if (*(controlData->killSwitch_ptr)) {
             prevMode = STOP;

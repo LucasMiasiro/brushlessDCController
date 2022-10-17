@@ -47,15 +47,13 @@
 #define BLDC2_OPR                       MCPWM_GEN_A
 
 #define RPM_MAX_COUNT                   1000
-#define RPM_COUNT                       3
+#define RPM_COUNT                       2
 #define RPM_COUNT_PER_REV               1
-#define RPM_MIN                         400
+#define RPM_MIN                         1000
 #define RPM_MAX                         12000
 #define RPM_DT_MIN                      RPM_COUNT*60*1000000/(RPM_MAX)
 #define RPM_DT_MAX                      RPM_COUNT*60*1000000/(RPM_MIN)
-#define RPM0_GPIO                       0
-#define RPM1_GPIO                       4
-#define RPM2_GPIO                       15
+#define RPM0_GPIO                       16
 
 // Encoder
 #define ECD_MAX_COUNT                   20000
