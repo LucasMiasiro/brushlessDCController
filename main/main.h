@@ -24,6 +24,7 @@ struct controlData_ptr{
     bool* bypassAngMax_ptr;
     controlMode* controlMode_ptr;
     rpmState* rpmState_ptr;
+    uint16_t* pwmDes_ptr;
 };
 
 

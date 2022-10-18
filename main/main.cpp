@@ -22,7 +22,7 @@ extern "C" void app_main(void)
     static TaskHandle_t sendTask_h = NULL, controlTask_h = NULL;
     static float currAngle = {0.0f}, desAngle = {0.0f};
     static bool setZero = false, killSwitch = true, bypassAngMax = false;
-
+    static uint16_t pwmDes = 0;
     static rpmState rpmState = {0.0f, false, 0.0f, false};
 
     // static PID pid0;
@@ -33,6 +33,7 @@ extern "C" void app_main(void)
                                           .bypassAngMax_ptr = &bypassAngMax,
                                           .controlMode_ptr = NULL,
                                           .rpmState_ptr = &rpmState,
+                                          .pwmDes_ptr = &pwmDes,
                                           };
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
@@ -100,6 +101,8 @@ void controlTask(void* Parameters){
     const uint32_t watchdogCounter_max = SM_WATCHDOG_COUNTER_MAX;
     uint32_t watchdogCounter = 0;
     rpmCounter RPM;
+    // SMC2 SMC0;
+    // bldc BLDC0(0);
 
 #if LOG_TIMER
     int64_t start = esp_timer_get_time();
@@ -110,6 +113,14 @@ void controlTask(void* Parameters){
 
     while(1){
         RPM.getRPM(controlData->rpmState_ptr);
+
+        // SMC0.update(controlData->rpmState_ptr->rpmDes,
+        //             controlData->rpmState_ptr->rpmCurr,
+        //             controlData->rpmState_ptr->rpmCurr_isNew);
+        // *(controlData->pwmDes_ptr) = SMC0.get();
+        // controlData->rpmState_ptr->rpmCurr_isNew = false;
+
+        // BLDC0.setPWM(*(controlData->pwmDes_ptr));
 
         if (*(controlData->killSwitch_ptr)) {
             prevMode = STOP;
