@@ -1,6 +1,7 @@
 #pragma once
 #include "config.h"
-// #include "driver/gpio.h"
+#include "driver/mcpwm_prelude.h"
+#include "driver/gpio.h"
 
 class builtin_led{
 public:
@@ -9,10 +10,17 @@ public:
     void blink(int n, bool endHigh);
 };
 
-// class bldc{
-//     void setup();
-//     const uint8_t n;
-// public:
-//     bldc(const uint8_t N) : n(N) {setup();};
-//     void setPWM(uint16_t pwmDes);
-// };
+class bldc{
+    void setup();
+    uint8_t n;
+    static uint8_t n_count;
+    mcpwm_timer_handle_t timer = NULL;
+    mcpwm_oper_handle_t oper = NULL;
+    mcpwm_cmpr_handle_t comparator = NULL;
+    mcpwm_gen_handle_t generator = NULL;
+    gpio_num_t bldc_gpio = BLDC0_GPIO;
+public:
+    bldc(gpio_num_t new_gpio) : bldc_gpio(new_gpio) {setup();};
+    bldc() {setup();};
+    void setPWM(uint16_t pwmDes);
+};

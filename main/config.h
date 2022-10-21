@@ -3,8 +3,7 @@
 // Application Control
 #define SYSTEM_SAMPLE_PERIOD_MS         1
 #define SEND_PERIOD_MS                  100
-#define APP_MODE                        1 // 0 -> Manual PWM Control
-                                          // 1 -> Close-loop BLDC Control
+#define CL_CONTROL_BLDC                 0 //Close-loop BLDC Control
 
 #define SHOULD_LOG                      1
 #if SHOULD_LOG
@@ -20,31 +19,16 @@
 // GPIO & PWM
 #define BUILTIN_LED                     GPIO_NUM_2
 #define MAX_PWM                         2500
-#define N_BLDC                          3
 #define PWM_IDLE                        800.0f
 #define PWM_MIN                         1200.0f
 #define PWM_DELTA                       1000.0f
 
-#define BLDC0_UNIT                      MCPWM_UNIT_0
-#define BLDC0_TIMER                     MCPWM_TIMER_0
-#define BLDC0_GPIO                      18
-#define BLDC0_IO                        MCPWM0A
-#define BLDC0_FREQ                      50 // Hz
-#define BLDC0_OPR                       MCPWM_GEN_A
-
-#define BLDC1_UNIT                      MCPWM_UNIT_0
-#define BLDC1_TIMER                     MCPWM_TIMER_1
-#define BLDC1_GPIO                      19
-#define BLDC1_IO                        MCPWM1A
-#define BLDC1_FREQ                      50 // Hz
-#define BLDC1_OPR                       MCPWM_GEN_A
-
-#define BLDC2_UNIT                      MCPWM_UNIT_0
-#define BLDC2_TIMER                     MCPWM_TIMER_2
-#define BLDC2_GPIO                      21
-#define BLDC2_IO                        MCPWM2A
-#define BLDC2_FREQ                      50 // Hz
-#define BLDC2_OPR                       MCPWM_GEN_A
+// #define N_BLDC                          3
+#define BLDC_TIMER_RESOLUTION           1000000 // 1 MHz (1 us per tick)
+#define BLDC_TIMER_PERIOD               20000 // 20000 ticks (20000 us) (50 Hz)
+#define BLDC0_GPIO                      GPIO_NUM_21
+// #define BLDC1_GPIO                      GPIO_NUM_19
+// #define BLDC2_GPIO                      GPIO_NUM_21
 
 #define RPM_MAX_COUNT                   1000
 #define RPM_COUNT                       2
@@ -59,12 +43,11 @@
 #define ECD_MAX_COUNT                   20000
 #define ECD0A_GPIO                      4
 #define ECD0B_GPIO                      18
+#define ECD0ZERO_GPIO                   5
 #define ECD_TICKS                       2000.0f
 
 // Step Motor
 #define SM_TIMER_RESOLUTION             1000000 // 1 MHz (1 us per tick)
-// #define SM_TIMER_PERIOD                 20000 // 1000 ticks (1000 us) (1000 Hz)
-// #define SM_PULSE_WIDTH                  2000  // 100 ticks  (100 us)
 #define SM_TIMER_PERIOD                 1000 // 1000 ticks (1000 us) (1000 Hz)
 #define SM_PULSE_WIDTH                  100  // 100 ticks  (100 us)
 #define SM_PULSE_GPIO                   19
@@ -87,14 +70,13 @@
 #define BLDC_FI                         100.0f
 #define BLDC_ERROR_FILTER               0
 #define BLDC_ERROR_FILTER_K             0.6f
-#define BLDC_MAX_SANITY_COUNTER         1000/SYSTEM_SAMPLE_PERIOD_MS // 2s
+#define BLDC_MAX_SANITY_COUNTER         1000/SYSTEM_SAMPLE_PERIOD_MS // 1s
 
 // Bluetooth
 #define SPP_TAG                         "SM_CTRL"
 #define SPP_SERVER_NAME                 "SM_CTRL_SERVER"
 #define BT_INIT_MSG                     "Connection stablished...\n"
 #define BT_RECEIVED_MSG                 "Received: "
-// #define BT_DEVICE_NAME                  "PWM Control"
 #define BT_DEVICE_NAME                  "LAE - Stepper Motor Control"
 #define BT_BUFFERSIZE                   32
 

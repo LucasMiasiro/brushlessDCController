@@ -29,33 +29,33 @@ uint16_t readUInt16(char *in){
     return out;
 }
 
-// struct pwmConfig {
-//     uint16_t pwmDes;
-//     uint8_t n;
-// };
-// static pwmConfig pwmConfigDes;
+struct pwmConfig {
+    uint16_t pwmDes;
+    uint8_t n;
+};
+static pwmConfig pwmConfigDes;
 
-// struct rpmConfig {
-//     float rpmDes;
-//     uint8_t n;
-// };
-// static rpmConfig rpmConfigDes;
+struct rpmConfig {
+    float rpmDes;
+    uint8_t n;
+};
+static rpmConfig rpmConfigDes;
 
-// pwmConfig readPWM(char *in){
-//     char trashBuffer[BT_BUFFERSIZE];
-//     int PWM{0}, n_BLDC{0};
-//     sscanf(in, "%s %d %d", trashBuffer, &PWM, &n_BLDC);
-//     pwmConfig out = {.pwmDes = (uint16_t) PWM, .n = (uint8_t) n_BLDC};
-//     return out;
-// }
+pwmConfig readPWM(char *in){
+    char trashBuffer[BT_BUFFERSIZE];
+    int PWM{0}, n_BLDC{0};
+    sscanf(in, "%s %d %d", trashBuffer, &PWM, &n_BLDC);
+    pwmConfig out = {.pwmDes = (uint16_t) PWM, .n = (uint8_t) n_BLDC};
+    return out;
+}
 
-// rpmConfig readRPM(char *in){
-//     char trashBuffer[BT_BUFFERSIZE];
-//     int RPM{0}, n_BLDC{0};
-//     sscanf(in, "%s %d %d", trashBuffer, &RPM, &n_BLDC);
-//     rpmConfig out = {.rpmDes = (float) RPM, .n = (uint8_t) n_BLDC};
-//     return out;
-// }
+rpmConfig readRPM(char *in){
+    char trashBuffer[BT_BUFFERSIZE];
+    int RPM{0}, n_BLDC{0};
+    sscanf(in, "%s %d %d", trashBuffer, &RPM, &n_BLDC);
+    rpmConfig out = {.rpmDes = (float) RPM, .n = (uint8_t) n_BLDC};
+    return out;
+}
 
 int sizeofArray(char* array){
     int numberOfChars = 0;
@@ -131,17 +131,17 @@ void logRPM(esp_spp_cb_param_t *param){
     // esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
 }
 
-// void logPWMConfig(esp_spp_cb_param_t *param){
-//     sprintf(buffer, "Setting BLDC PWM %u to: %u", pwmConfigDes.n, pwmConfigDes.pwmDes);
-//     esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
-//     esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
-// }
+void logPWMConfig(esp_spp_cb_param_t *param){
+    sprintf(buffer, "Setting BLDC PWM %u to: %u", pwmConfigDes.n, pwmConfigDes.pwmDes);
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+}
 
-// void logRPMConfig(esp_spp_cb_param_t *param){
-//     sprintf(buffer, "Setting BLDC RPM %u to: %.3f", rpmConfigDes.n, rpmConfigDes.rpmDes);
-//     esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
-//     esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
-// }
+void logRPMConfig(esp_spp_cb_param_t *param){
+    sprintf(buffer, "Setting BLDC RPM %u to: %.3f", rpmConfigDes.n, rpmConfigDes.rpmDes);
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+}
 
 
 
@@ -154,27 +154,31 @@ bool isEqual(char *a, char *b, const int len){
 }
 
 
-// bool getPWM(esp_spp_cb_param_t *param){
-//     pwmConfigDes = readPWM((char *) param->data_ind.data);
-    // if (pwmConfigDes.pwmDes >= MAX_PWM){
-    //     return false;
-    // }
-    // if (pwmConfigDes.n >= N_BLDC){
-    //     return false;
-    // }
-//     return true;
-// };
+bool getPWM(esp_spp_cb_param_t *param){
+    pwmConfigDes = readPWM((char *) param->data_ind.data);
+    if (pwmConfigDes.pwmDes >= MAX_PWM){
+        return false;
+    }
+#ifdef N_BLDC
+    if (pwmConfigDes.n >= N_BLDC){
+        return false;
+    }
+#endif
+    return true;
+};
 
-// bool getRPM(esp_spp_cb_param_t *param){
-//     rpmConfigDes = readRPM((char *) param->data_ind.data);
-//     if (rpmConfigDes.rpmDes >= RPM_MAX){
-//         return false;
-//     }
-//     if (rpmConfigDes.n >= N_BLDC){
-//         return false;
-//     }
-//     return true;
-// };
+bool getRPM(esp_spp_cb_param_t *param){
+    rpmConfigDes = readRPM((char *) param->data_ind.data);
+    if (rpmConfigDes.rpmDes >= RPM_MAX){
+        return false;
+    }
+#ifdef N_BLDC
+    if (rpmConfigDes.n >= N_BLDC){
+        return false;
+    }
+#endif
+    return true;
+};
 
 static bool bWriteAfterOpenEvt = false;
 static bool bWriteAfterWriteEvt = false;
@@ -266,6 +270,24 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
             if (isEqual((char *)param->data_ind.data, (char *)c7, sizeof(c7)/sizeof(c7[0]) - 1)){
                 logRPM(param);
             }
+
+            const char c8[] = BT_MSG_SET_PWMDES;
+            if (isEqual((char *)param->data_ind.data, (char *)c8, sizeof(c8)/sizeof(c8[0]) - 1)){
+                if (getPWM(param)){
+                    *(__BTData_ptr->controlData->pwmDes_ptr) = pwmConfigDes.pwmDes;
+                    logPWMConfig(param);
+                }; 
+            }
+
+            const char c9[] = BT_MSG_SET_RPMDES;
+            if (isEqual((char *)param->data_ind.data, (char *)c9, sizeof(c9)/sizeof(c9[0]) - 1)){
+                if (getRPM(param)){
+                    __BTData_ptr->controlData->rpmState_ptr->rpmDes = rpmConfigDes.rpmDes;
+                    __BTData_ptr->controlData->rpmState_ptr->rpmDes_isNew = true;
+                    logRPMConfig(param);
+                }; 
+            }
+
 
             // const char c3[] = BT_MSG_SET_RPMDES;
             // if (isEqual((char *)param->data_ind.data, (char *)c3, sizeof(c3)/sizeof(c3[0]) - 1)){

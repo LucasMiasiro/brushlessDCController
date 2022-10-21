@@ -10,6 +10,7 @@
 #include "encoder-reader.h"
 #include "step-motor.h"
 #include "PID.h"
+#include "SMC2.h"
 
 extern "C" void app_main(void)
 {
@@ -25,7 +26,6 @@ extern "C" void app_main(void)
     static uint16_t pwmDes = 0;
     static rpmState rpmState = {0.0f, false, 0.0f, false};
 
-    // static PID pid0;
     static controlData_ptr controlData = {.currAngle_ptr = &currAngle,
                                           .desAngle_ptr = &desAngle,
                                           .setZero_ptr = &setZero,
@@ -78,6 +78,10 @@ void sendTask(void* Parameters){
         serialLogger::logFloat(controlData->desAngle_ptr, "DESANG");
         serialLogger::logUInt8((uint8_t*)(controlData->controlMode_ptr), "CTRLMODE");
         serialLogger::logUInt8((uint8_t*)(controlData->killSwitch_ptr), "KILLSWITCH");
+        serialLogger::logFloat(&(controlData->rpmState_ptr->rpmCurr), "CURRRPM");
+        serialLogger::logFloat(&(controlData->rpmState_ptr->rpmDes), "DESRPM");
+        serialLogger::logUInt16(controlData->pwmDes_ptr, "PWM");
+        
         serialLogger::blank_lines(1);
 
         vTaskDelayUntil(&startTimer, SEND_PERIOD_MS/portTICK_PERIOD_MS);
@@ -93,7 +97,7 @@ void sendTask(void* Parameters){
 
 void controlTask(void* Parameters){
     controlData_ptr* controlData = (controlData_ptr*) Parameters;
-    encoderReader ECDReader;
+    encoderReader ECDReader(true);
     stepMotor stepMotor;
     controlMode currMode = STOP, prevMode = STOP;
     controlData->controlMode_ptr = &currMode;
@@ -101,8 +105,8 @@ void controlTask(void* Parameters){
     const uint32_t watchdogCounter_max = SM_WATCHDOG_COUNTER_MAX;
     uint32_t watchdogCounter = 0;
     rpmCounter RPM;
-    // SMC2 SMC0;
-    // bldc BLDC0(0);
+    SMC2 SMC0;
+    bldc BLDC0(BLDC0_GPIO);
 
 #if LOG_TIMER
     int64_t start = esp_timer_get_time();
@@ -114,13 +118,15 @@ void controlTask(void* Parameters){
     while(1){
         RPM.getRPM(controlData->rpmState_ptr);
 
-        // SMC0.update(controlData->rpmState_ptr->rpmDes,
-        //             controlData->rpmState_ptr->rpmCurr,
-        //             controlData->rpmState_ptr->rpmCurr_isNew);
-        // *(controlData->pwmDes_ptr) = SMC0.get();
-        // controlData->rpmState_ptr->rpmCurr_isNew = false;
+#if CL_CONTROL_BLDC
+        SMC0.update(controlData->rpmState_ptr->rpmDes,
+                    controlData->rpmState_ptr->rpmCurr,
+                    controlData->rpmState_ptr->rpmCurr_isNew);
+        *(controlData->pwmDes_ptr) = SMC0.get();
+        controlData->rpmState_ptr->rpmCurr_isNew = false;
+#endif
 
-        // BLDC0.setPWM(*(controlData->pwmDes_ptr));
+        BLDC0.setPWM(*(controlData->pwmDes_ptr));
 
         if (*(controlData->killSwitch_ptr)) {
             prevMode = STOP;
