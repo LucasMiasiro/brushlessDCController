@@ -22,7 +22,8 @@ extern "C" void app_main(void)
 
     static TaskHandle_t sendTask_h = NULL, controlTask_h = NULL;
     static float currAngle = {0.0f}, desAngle = {0.0f};
-    static bool setZero = false, killSwitch = true, bypassAngMax = false;
+    static bool setZero = false, killSwitch = true, bypassAngMax = false,
+                homeWasSet = false;
     static uint16_t pwmDes = 0;
     static rpmState rpmState = {0.0f, false, 0.0f, false};
 
@@ -31,6 +32,7 @@ extern "C" void app_main(void)
                                           .setZero_ptr = &setZero,
                                           .killSwitch_ptr = &killSwitch,
                                           .bypassAngMax_ptr = &bypassAngMax,
+                                          .homeWasSet_ptr = &homeWasSet,
                                           .controlMode_ptr = NULL,
                                           .rpmState_ptr = &rpmState,
                                           .pwmDes_ptr = &pwmDes,
@@ -78,6 +80,7 @@ void sendTask(void* Parameters){
         serialLogger::logFloat(controlData->desAngle_ptr, "DESANG");
         serialLogger::logUInt8((uint8_t*)(controlData->controlMode_ptr), "CTRLMODE");
         serialLogger::logUInt8((uint8_t*)(controlData->killSwitch_ptr), "KILLSWITCH");
+        serialLogger::logUInt8((uint8_t*)(controlData->homeWasSet_ptr), "HOMESET");
         serialLogger::logFloat(&(controlData->rpmState_ptr->rpmCurr), "CURRRPM");
         serialLogger::logFloat(&(controlData->rpmState_ptr->rpmDes), "DESRPM");
         serialLogger::logUInt16(controlData->pwmDes_ptr, "PWM");
@@ -140,7 +143,8 @@ void controlTask(void* Parameters){
 
         prevMeas = *(controlData->currAngle_ptr);
         ECDReader.getCurrAngle(controlData->currAngle_ptr,
-                              *(controlData->setZero_ptr));
+                              *(controlData->setZero_ptr),
+                              controlData->homeWasSet_ptr);
         
         if (abs(prevMeas - *(controlData->currAngle_ptr)) > 0.0001f) {
             watchdogCounter = 0;

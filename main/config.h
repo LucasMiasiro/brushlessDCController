@@ -43,7 +43,7 @@
 #define ECD_MAX_COUNT                   20000
 #define ECD0A_GPIO                      4
 #define ECD0B_GPIO                      18
-#define ECD0ZERO_GPIO                   5
+#define ECD0ZERO_GPIO                   15
 #define ECD_TICKS                       2000.0f
 
 // Step Motor

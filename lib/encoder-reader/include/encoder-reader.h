@@ -4,6 +4,12 @@
 #include "freertos/queue.h"
 #include "main.h"
 
+struct cbData {
+    QueueHandle_t queue;
+    pcnt_unit_handle_t unit;
+    bool homeWasSet;
+};
+
 class encoderReader {
 private:
     void setup();
@@ -14,8 +20,10 @@ private:
     const uint8_t GPIOB{ECD0B_GPIO};
     const uint8_t GPIOZERO{ECD0ZERO_GPIO};
     QueueHandle_t queue;
+    cbData data;
 public:
     encoderReader() : zeroDetection(false) {setup();};
     encoderReader(const bool zeroDetection_in) : zeroDetection(zeroDetection_in) {setup();};
     void getCurrAngle(float *currAngle, bool setZero);
+    void getCurrAngle(float *currAngle, bool setZero, bool* homeWasSet);
 };

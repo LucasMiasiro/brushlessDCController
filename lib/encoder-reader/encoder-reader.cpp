@@ -10,10 +10,14 @@
 static bool pcnt_on_reach(pcnt_unit_t *unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
 {
     BaseType_t high_task_wakeup;
-    QueueHandle_t queue = (QueueHandle_t)user_ctx;
+    cbData* data = (cbData*) user_ctx;
+    QueueHandle_t queue = data->queue;
     xQueueSendFromISR(queue, &(edata->watch_point_value), &high_task_wakeup);
 
     ESP_ERROR_CHECK(pcnt_unit_clear_count(unit));
+    ESP_ERROR_CHECK(pcnt_unit_clear_count(data->unit));
+    data->homeWasSet = true;
+    // std::cout << "Teste ---------------------------\n";
 
     return (high_task_wakeup == pdTRUE);
 }
@@ -46,15 +50,11 @@ void encoderReader::setup()
     ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_chan_b, PCNT_CHANNEL_EDGE_ACTION_INCREASE, PCNT_CHANNEL_EDGE_ACTION_DECREASE));
     ESP_ERROR_CHECK(pcnt_channel_set_level_action(pcnt_chan_b, PCNT_CHANNEL_LEVEL_ACTION_KEEP, PCNT_CHANNEL_LEVEL_ACTION_INVERSE));
 
-    ESP_ERROR_CHECK(pcnt_unit_enable(pcnt_unit));
-    ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
-    ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
-
     if (zeroDetection) {
 
         ESP_ERROR_CHECK(pcnt_new_unit(&unit_config, &pcnt_unit_zero));
         ESP_ERROR_CHECK(pcnt_unit_set_glitch_filter(pcnt_unit_zero, &filter_config));
-        pcnt_chan_config_t chan_zero_config = {.edge_gpio_num = GPIOA, .level_gpio_num = -1,};
+        pcnt_chan_config_t chan_zero_config = {.edge_gpio_num = GPIOZERO, .level_gpio_num = -1,};
         pcnt_channel_handle_t pcnt_chan_zero = NULL;
         ESP_ERROR_CHECK(pcnt_new_channel(pcnt_unit_zero, &chan_zero_config, &pcnt_chan_zero));
         ESP_ERROR_CHECK(pcnt_channel_set_edge_action(pcnt_chan_zero, PCNT_CHANNEL_EDGE_ACTION_INCREASE, PCNT_CHANNEL_EDGE_ACTION_HOLD)); // Count rising edge
@@ -63,15 +63,25 @@ void encoderReader::setup()
         ESP_ERROR_CHECK(pcnt_unit_add_watch_point(pcnt_unit_zero, 1));
         pcnt_event_callbacks_t cbs = {.on_reach = pcnt_on_reach,};
         queue = xQueueCreate(10, sizeof(int));
-        ESP_ERROR_CHECK(pcnt_unit_register_event_callbacks(pcnt_unit_zero, &cbs, queue));
+        data = {.queue = queue, .unit = pcnt_unit, .homeWasSet = false};
+        ESP_ERROR_CHECK(pcnt_unit_register_event_callbacks(pcnt_unit_zero, &cbs, &data));
 
         ESP_ERROR_CHECK(pcnt_unit_enable(pcnt_unit_zero));
         ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit_zero));
         ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit_zero));
 
     }
+
+    ESP_ERROR_CHECK(pcnt_unit_enable(pcnt_unit));
+    ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit));
+    ESP_ERROR_CHECK(pcnt_unit_start(pcnt_unit));
 }
 
+void encoderReader::getCurrAngle(float *currAngle, bool setZero, bool* homeWasSet)
+{
+    getCurrAngle(currAngle, setZero);
+    *homeWasSet = data.homeWasSet;
+}
 
 void encoderReader::getCurrAngle(float *currAngle, bool setZero)
 {

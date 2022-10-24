@@ -22,6 +22,7 @@ struct controlData_ptr{
     bool* setZero_ptr;
     bool* killSwitch_ptr;
     bool* bypassAngMax_ptr;
+    bool* homeWasSet_ptr;
     controlMode* controlMode_ptr;
     rpmState* rpmState_ptr;
     uint16_t* pwmDes_ptr;
