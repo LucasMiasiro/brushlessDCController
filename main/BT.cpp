@@ -92,6 +92,12 @@ void logKillSwitch(esp_spp_cb_param_t *param){
     esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
 }
 
+void logHomeset(esp_spp_cb_param_t *param){
+    sprintf(buffer, "HOMESET: %u", *(__BTData_ptr->controlData->homeWasSet_ptr));
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+}
+
 void logControlMode(esp_spp_cb_param_t *param){
     sprintf(buffer, "CTRLMODE: %u", *(__BTData_ptr->controlData->controlMode_ptr));
     esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
@@ -264,6 +270,7 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
             if (isEqual((char *)param->data_ind.data, (char *)c6, sizeof(c6)/sizeof(c6[0]) - 1)){
                 logKillSwitch(param);
                 logControlMode(param);
+                logHomeset(param);
             }
 
             const char c7[] = BT_MSG_GET_RPM;

@@ -56,11 +56,11 @@ void stepMotor::setup(){
 }
 
 void stepMotor::setUp(){
-    gpio_set_level(dir_gpio, 1);
+    gpio_set_level(dir_gpio, 0);
 }
 
 void stepMotor::setDown(){
-    gpio_set_level(dir_gpio, 0);
+    gpio_set_level(dir_gpio, 1);
 }
 
 void stepMotor::go(){

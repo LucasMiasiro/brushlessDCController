@@ -106,6 +106,7 @@ void controlTask(void* Parameters){
     controlData->controlMode_ptr = &currMode;
     float angError = 0.0f, prevMeas = 0.0f;
     const uint32_t watchdogCounter_max = SM_WATCHDOG_COUNTER_MAX;
+    const float watchdogCounter_diffMin = SM_WATCHDOG_DIFF_MIN;
     uint32_t watchdogCounter = 0;
     rpmCounter RPM;
     SMC2 SMC0;
@@ -134,6 +135,7 @@ void controlTask(void* Parameters){
         if (*(controlData->killSwitch_ptr)) {
             prevMode = STOP;
             currMode = STOP;
+            watchdogCounter = 0;
         }
 
         if (watchdogCounter > watchdogCounter_max) {
@@ -145,8 +147,8 @@ void controlTask(void* Parameters){
         ECDReader.getCurrAngle(controlData->currAngle_ptr,
                               *(controlData->setZero_ptr),
                               controlData->homeWasSet_ptr);
-        
-        if (abs(prevMeas - *(controlData->currAngle_ptr)) > 0.0001f) {
+
+        if (std::abs(prevMeas - *(controlData->currAngle_ptr)) > watchdogCounter_diffMin) {
             watchdogCounter = 0;
         }
 
@@ -156,6 +158,7 @@ void controlTask(void* Parameters){
             stepMotor.stop();
             prevMode = STOP;
             currMode = STOP;
+            watchdogCounter = 0;
         }
 
         angError = *(controlData->desAngle_ptr) - *(controlData->currAngle_ptr);

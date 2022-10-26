@@ -55,6 +55,7 @@
 #define SM_ANG_TOL                      0.12f
 #define SM_ANG_MAX                      60.0f
 #define SM_WATCHDOG_COUNTER_MAX         5000;
+#define SM_WATCHDOG_DIFF_MIN            0.02;
 
 // PID
 #define BLDC_KP                         0.08f
