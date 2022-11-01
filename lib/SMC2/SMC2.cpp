@@ -56,9 +56,17 @@ void SMC2::update(float refin, float measin, float isNewin){
 
     // Phase 1 - Sliding Surface
     e = ref - meas;
-    #if BLDC_ERROR_FILTER
+
+#if ENABLE_BLDC_TOL
+    if ((e < tol) && (e > -tol)) {
+        boundOut();
+        return;
+    }
+#endif
+
+#if BLDC_ERROR_FILTER
     e = k_filter*(e - e_prev) + e_prev;
-    #endif
+#endif
     sigma = e + c1*(e - e_prev)/dt;
 
     // Phase 2 - Super Twisting

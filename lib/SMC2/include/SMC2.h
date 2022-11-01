@@ -13,6 +13,7 @@ private:
     float c1{BLDC_C1};
     float Fstar{BLDC_FSTAR};
     float FI{BLDC_FI};
+    float tol{BLDC_RPM_TOL};
     float ref{0.0f};
     float meas{0.0f};
     float e{0.0f};

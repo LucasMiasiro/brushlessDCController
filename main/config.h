@@ -3,7 +3,8 @@
 // Application Control
 #define SYSTEM_SAMPLE_PERIOD_MS         1
 #define SEND_PERIOD_MS                  100
-#define CL_CONTROL_BLDC                 0 //Close-loop BLDC Control
+#define CL_CONTROL_BLDC                 1 //Close-loop BLDC Control
+#define ENABLE_BLDC_TOL                 0 
 
 #define SHOULD_LOG                      1
 #if SHOULD_LOG
@@ -32,9 +33,9 @@
 
 #define RPM_MAX_COUNT                   1000
 #define RPM_COUNT                       2
-#define RPM_COUNT_PER_REV               1
-#define RPM_MIN                         1000
-#define RPM_MAX                         12000
+#define RPM_COUNT_PER_REV               7
+#define RPM_MIN                         500
+#define RPM_MAX                         20000
 #define RPM_DT_MIN                      RPM_COUNT*60*1000000/(RPM_MAX)
 #define RPM_DT_MAX                      RPM_COUNT*60*1000000/(RPM_MIN)
 #define RPM0_GPIO                       16
@@ -67,8 +68,9 @@
 
 // SMC2
 #define BLDC_C1                         0.1f
-#define BLDC_FSTAR                      3.0f
-#define BLDC_FI                         100.0f
+#define BLDC_FSTAR                      1.0f
+#define BLDC_FI                         10.0f
+#define BLDC_RPM_TOL                    30.0f
 #define BLDC_ERROR_FILTER               0
 #define BLDC_ERROR_FILTER_K             0.6f
 #define BLDC_MAX_SANITY_COUNTER         1000/SYSTEM_SAMPLE_PERIOD_MS // 1s
