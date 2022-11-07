@@ -31,6 +31,7 @@ private:
     // float dt_accum{0.0f};
     float offset{PWM_MIN};
     float pwm_idle{PWM_IDLE};
+    float pwm_spoolup{PWM_SPOOLUP};
     uint16_t sanityCount = 0;
     uint8_t boundOut();
 public:

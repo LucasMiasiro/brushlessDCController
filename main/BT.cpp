@@ -137,6 +137,18 @@ void logRPM(esp_spp_cb_param_t *param){
     // esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
 }
 
+void logPWM(esp_spp_cb_param_t *param){
+    sprintf(buffer, "PWM0: %u", *(__BTData_ptr->controlData->pwmDes_ptr));
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+    // sprintf(buffer, "RPM1: %.3f", __BTData_ptr->controlData->rpmState_ptr[1].rpmCurr);
+    // esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    // esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+    // sprintf(buffer, "RPM2: %.3f", __BTData_ptr->controlData->rpmState_ptr[2].rpmCurr);
+    // esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    // esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+}
+
 void logPWMConfig(esp_spp_cb_param_t *param){
     sprintf(buffer, "Setting BLDC PWM %u to: %u", pwmConfigDes.n, pwmConfigDes.pwmDes);
     esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
@@ -295,6 +307,10 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
                 }; 
             }
 
+            const char c10[] = BT_MSG_GET_PWM;
+            if (isEqual((char *)param->data_ind.data, (char *)c10, sizeof(c10)/sizeof(c10[0]) - 1)){
+                logPWM(param);
+            }
 
             // const char c3[] = BT_MSG_SET_RPMDES;
             // if (isEqual((char *)param->data_ind.data, (char *)c3, sizeof(c3)/sizeof(c3[0]) - 1)){

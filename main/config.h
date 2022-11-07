@@ -5,6 +5,7 @@
 #define SEND_PERIOD_MS                  100
 #define CL_CONTROL_BLDC                 1 //Close-loop BLDC Control
 #define ENABLE_BLDC_TOL                 0 
+#define ENABLE_BLDC_SAN_CHECK           1 
 
 #define SHOULD_LOG                      1
 #if SHOULD_LOG
@@ -21,7 +22,8 @@
 #define BUILTIN_LED                     GPIO_NUM_2
 #define MAX_PWM                         2500
 #define PWM_IDLE                        800.0f
-#define PWM_MIN                         1200.0f
+#define PWM_MIN                         900.0f
+#define PWM_SPOOLUP                     1200.0f
 #define PWM_DELTA                       1000.0f
 
 // #define N_BLDC                          3
@@ -87,6 +89,7 @@
 #define BT_MSG_SHUTDOWN_B               "DISARM"
 #define BT_MSG_ARM                      "ARM"
 #define BT_MSG_GET_RPM                  "RGET"
+#define BT_MSG_GET_PWM                  "PGET"
 #define BT_MSG_SET_PWMDES               "PSET"
 #define BT_MSG_SET_RPMDES               "RSET"
 #define BT_MSG_SET_PWMDES_ALL           "ALLPSET"
