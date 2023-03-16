@@ -11,6 +11,7 @@
 #include "step-motor.h"
 #include "PID.h"
 #include "SMC2.h"
+#include "baro.h"
 
 extern "C" void app_main(void)
 {
@@ -22,6 +23,7 @@ extern "C" void app_main(void)
 
     static TaskHandle_t sendTask_h = NULL, controlTask_h = NULL;
     static float currAngle = {0.0f}, desAngle = {0.0f};
+    static float T = {0.0f}, p = {0.0f};
     static bool setZero = false, killSwitch = true, bypassAngMax = false,
                 homeWasSet = false;
     static uint16_t pwmDes = 0;
@@ -29,6 +31,8 @@ extern "C" void app_main(void)
 
     static controlData_ptr controlData = {.currAngle_ptr = &currAngle,
                                           .desAngle_ptr = &desAngle,
+                                          .p_ptr = &p,
+                                          .T_ptr = &T,
                                           .setZero_ptr = &setZero,
                                           .killSwitch_ptr = &killSwitch,
                                           .bypassAngMax_ptr = &bypassAngMax,
@@ -84,6 +88,8 @@ void sendTask(void* Parameters){
         serialLogger::logFloat(&(controlData->rpmState_ptr->rpmCurr), "CURRRPM");
         serialLogger::logFloat(&(controlData->rpmState_ptr->rpmDes), "DESRPM");
         serialLogger::logUInt16(controlData->pwmDes_ptr, "PWM");
+        serialLogger::logFloat((controlData->p_ptr), "PRESSURE");
+        serialLogger::logFloat((controlData->T_ptr), "TEMPERATURE");
         
         serialLogger::blank_lines(1);
 
@@ -111,6 +117,7 @@ void controlTask(void* Parameters){
     rpmCounter RPM;
     SMC2 SMC0;
     bldc BLDC0(BLDC0_GPIO);
+    baro baro;
 
 #if LOG_TIMER
     int64_t start = esp_timer_get_time();
@@ -230,6 +237,11 @@ void controlTask(void* Parameters){
         default:
             break;
         }
+
+        for (uint8_t i = 0; i < 10; i++){
+            baro.accumulateData();
+        }
+        baro.getData(controlData->p_ptr, controlData->T_ptr);
 
 #if LOG_TIMER
         dt = esp_timer_get_time() - start;

@@ -19,6 +19,8 @@ struct rpmState{
 struct controlData_ptr{
     float* currAngle_ptr;
     float* desAngle_ptr;
+    float* p_ptr;
+    float* T_ptr;
     bool* setZero_ptr;
     bool* killSwitch_ptr;
     bool* bypassAngMax_ptr;
