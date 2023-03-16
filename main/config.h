@@ -29,7 +29,7 @@
 // #define N_BLDC                          3
 #define BLDC_TIMER_RESOLUTION           1000000 // 1 MHz (1 us per tick)
 #define BLDC_TIMER_PERIOD               20000 // 20000 ticks (20000 us) (50 Hz)
-#define BLDC0_GPIO                      GPIO_NUM_21
+#define BLDC0_GPIO                      GPIO_NUM_22
 // #define BLDC1_GPIO                      GPIO_NUM_19
 // #define BLDC2_GPIO                      GPIO_NUM_21
 
