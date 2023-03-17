@@ -43,8 +43,8 @@
 #define RPM0_GPIO                       16
 
 // Baro
-#define BMP280_SDA_IO                   14
-#define BMP280_SCL_IO                   12
+#define BMP280_SDA_IO                   GPIO_NUM_14
+#define BMP280_SCL_IO                   GPIO_NUM_13
 #define BMP280_MASTER_FREQ_HZ           100000
 #define BMP280_I2C_PORT                 I2C_NUM_1
 #define BMP280_I2C_WRITE_BIT            I2C_MASTER_WRITE
@@ -53,13 +53,14 @@
 #define BMP280_I2C_ACK_CHECK_DIS	    0x0
 #define BMP280_I2C_ACK_VAL	            I2C_MASTER_ACK
 #define BMP280_I2C_NACK_VAL	            I2C_MASTER_NACK
-#define BMP280_ADD                      0X77
-#define BMP280_REG                      0XF6
-#define BMP280_CALIB_REG                0XAA
+#define BMP280_ADD                      0X76
+#define BMP280_PRES_REG                 0XF7
+#define BMP280_TEMP_REG                 0XFA
+#define BMP280_CALIB_REG                0X88
 #define BMP280_CONFIG_01_ADD            0XF4
-#define BMP280_CONFIG_01_OPT            0X34
-#define BMP280_CONFIG_02_ADD            0XF4
-#define BMP280_CONFIG_02_OPT            0X2E
+#define BMP280_CONFIG_01_OPT            0XB7
+#define BMP280_CONFIG_02_ADD            0XF5
+#define BMP280_CONFIG_02_OPT            0X08
 
 // Encoder
 #define ECD_MAX_COUNT                   20000

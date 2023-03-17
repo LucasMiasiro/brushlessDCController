@@ -238,9 +238,6 @@ void controlTask(void* Parameters){
             break;
         }
 
-        for (uint8_t i = 0; i < 10; i++){
-            baro.accumulateData();
-        }
         baro.getData(controlData->p_ptr, controlData->T_ptr);
 
 #if LOG_TIMER

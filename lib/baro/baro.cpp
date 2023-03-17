@@ -1,156 +1,90 @@
 #include "baro.h"
 #include "driver/i2c.h"
 #include "config.h"
+#include <iostream>
 
-bool baro::accumulateData(){
+bool baro::getData(float* p_out, float* T_out){
     if (readData()){
         return 1;
     }
-    return 0;
-}
 
-bool baro::getData(float* p_out, float* T_out){
+    calcTruePressure();
 
-    baroState = SHOULD_READ_TEMP;
-
-    if (N_samples == 0){
-        calcTruePressure();
-        return 1;
-    }
-
-    calcTruePressureAccum();
     *p_out = (float)p;
-    *T_out = (float)T;
-    cleanAccum();
-    return 0;
-}
-
-bool baro::cleanAccum(){
-    B_raw_accum = 0;
-    N_samples = 0;
+    *T_out = (float)T/100.0f;
     return 0;
 }
 
 baro::baro(){
     setup_i2c();
     getBaroCal();
-    setPressureMeas();
+    opt = BMP280_CONFIG_01_OPT;
+    write(&opt, 1, BMP280_ADD, BMP280_CONFIG_01_ADD);
+    opt = BMP280_CONFIG_02_OPT;
+    write(&opt, 1, BMP280_ADD, BMP280_CONFIG_02_ADD);
 };
 
 void baro::getBaroCal(){
-    read(buffer, 22, BMP280_ADD, BMP280_CALIB_REG);
-    AC1 = (buffer[0] << 8 | buffer[1]);
-    AC2 = (buffer[2] << 8 | buffer[3]);
-    AC3 = (buffer[4] << 8 | buffer[5]);
-    AC4 = (buffer[6] << 8 | buffer[7]);
-    AC5 = (buffer[8] << 8 | buffer[9]);
-    AC6 = (buffer[10] << 8 | buffer[11]);
-    B1 = (buffer[12] << 8 | buffer[13]);
-    B2 = (buffer[14] << 8 | buffer[15]);
-    MB = (buffer[16] << 8 | buffer[17]);
-    MC = (buffer[18] << 8 | buffer[19]);
-    MD = (buffer[20] << 8 | buffer[21]);
-}
-
-void baro::calcTruePressureAccum(){
-    X1 = (T_raw - AC6) * AC5 / 32768;
-    X2 = MC * 2048 / (X1 + MD);
-    B5 = X1 + X2;
-    T = (B5 + 8) / 16;
-
-    B6 = B5 - 4000;
-    X1 = (B2 * (B6 * B6 / 4096)) / 2048;
-    X2 = AC2 * B6 / 2048;
-    X3 = X1 + X2;
-    B3 = (AC1 * 4 + X3 + 2) / 4;
-    X1 = AC3 * B6 / 8192;
-    X2 = (B1 * (B6 * B6 / 4096)) / 65536;
-    X3 = (X1 + X2 + 2) / 4;
-    B4 = AC4 * (uint32_t)(X3 + 32768) / 32768;
-    B7 = ((uint32_t)(B_raw_accum/N_samples) - B3) * 50000;
-    if (B7 < 0X80000000) {
-        p = (B7 * 2) / B4;
-    } else {
-        p = (B7 / B4) * 2;
-    }
-    X1 = (p / 256) * (p / 256);
-    X1 = (X1 * 3038) / 65536;
-    X2 = (-7357 * p) / 65536;
-    p = p + (X1 + X2 + 3791) / 16;
+    read(buffer, 24, BMP280_ADD, BMP280_CALIB_REG);
+    T1 = (buffer[1] << 8 | buffer[0]);
+    T2 = (buffer[3] << 8 | buffer[2]);
+    T3 = (buffer[5] << 8 | buffer[4]);
+    P1 = (buffer[7] << 8 | buffer[6]);
+    P2 = (buffer[9] << 8 | buffer[8]);
+    P3 = (buffer[11] << 8 | buffer[10]);
+    P4 = (buffer[13] << 8 | buffer[12]);
+    P5 = (buffer[15] << 8 | buffer[14]);
+    P6 = (buffer[17] << 8 | buffer[16]);
+    P7 = (buffer[19] << 8 | buffer[18]);
+    P8 = (buffer[21] << 8 | buffer[20]);
+    P9 = (buffer[23] << 8 | buffer[22]);
 }
 
 void baro::calcTruePressure(){
-    X1 = (T_raw - AC6) * AC5 / 32768;
-    X2 = MC * 2048 / (X1 + MD);
-    B5 = X1 + X2;
-    T = (B5 + 8) / 16;
 
-    B6 = B5 - 4000;
-    X1 = (B2 * (B6 * B6 / 4096)) / 2048;
-    X2 = AC2 * B6 / 2048;
-    X3 = X1 + X2;
-    B3 = (AC1 * 4 + X3 + 2) / 4;
-    X1 = AC3 * B6 / 8192;
-    X2 = (B1 * (B6 * B6 / 4096)) / 65536;
-    X3 = (X1 + X2 + 2) / 4;
-    B4 = AC4 * (uint32_t)(X3 + 32768) / 32768;
-    B7 = ((uint32_t)(B_raw) - B3) * 50000;
-    if (B7 < 0X80000000) {
-        p = (B7 * 2) / B4;
-    } else {
-        p = (B7 / B4) * 2;
+    int32_t var1, var2;
+
+    var1 = ((((T_raw>>3) - ((int32_t)T1<<1))) * ((int32_t)T2)) >> 11;
+    var2 = (((((T_raw>>4) - ((int32_t)T1)) * ((T_raw>>4) - ((int32_t)T1))) >> 12) *
+    ((int32_t)T3)) >> 14;
+    t_fine = var1 + var2;
+    T = (t_fine * 5 + 128) >> 8;
+
+    var1 = (((int32_t)t_fine)>>1) - (int32_t)64000;
+    var2 = (((var1>>2) * (var1>>2)) >> 11 ) * ((int32_t)P6);
+    var2 = var2 + ((var1*((int32_t)P5))<<1);
+    var2 = (var2>>2)+(((int32_t)P4)<<16);
+    var1 = (((P3 * (((var1>>2) * (var1>>2)) >> 13 )) >> 3) + ((((int32_t)P2) * var1)>>1))>>18;
+    var1 =((((32768+var1))*((int32_t)P1))>>15);
+
+    if (var1 == 0){
+        return; // avoid exception caused by division by zero
     }
-    X1 = (p / 256) * (p / 256);
-    X1 = (X1 * 3038) / 65536;
-    X2 = (-7357 * p) / 65536;
-    p = p + (X1 + X2 + 3791) / 16;
-}
 
-void baro::setPressureMeas(){
-    opt = BMP280_CONFIG_01_OPT;
-    write(&opt, 1, BMP280_ADD, BMP280_CONFIG_01_ADD);
-}
+    p = (((uint32_t)(((int32_t)1048576)-B_raw)-(var2>>12)))*3125;
+    if (p < 0x80000000){
+        p = (p << 1) / ((uint32_t)var1);
+    } else {
+        p = (p / (uint32_t)var1) * 2;
+    }
 
-void baro::setTemperatureMeas(){
-    opt = BMP280_CONFIG_02_OPT;
-    write(&opt, 1, BMP280_ADD, BMP280_CONFIG_02_ADD);
+    var1 = (((int32_t)P9) * ((int32_t)(((p>>3) * (p>>3))>>13)))>>12;
+    var2 = (((int32_t)(p>>2)) * ((int32_t)P8))>>13;
+    p = (uint32_t)((int32_t)p + ((var1 + var2 + P7) >> 4));
+
 }
 
 bool baro::readData(){
 
-    switch (baroState) {
-        case (SHOULD_READ_TEMP):
-            setTemperatureMeas();
-            baroState = WAIT_FOR_TEMP;
-            break;
+    // read(buffer, 2, BMP280_ADD, BMP280_TEMP_REG);
+    // T_raw = (buffer[0] << 8 | buffer[1]);
+    // read(buffer, 2, BMP280_ADD, BMP280_PRES_REG);
+    // B_raw = (buffer[0] << 8 | buffer[1]);
 
-        case (WAIT_FOR_TEMP):
-            baroState = READ_TEMP;
-            break;
-
-        case (READ_TEMP):
-            read(buffer, 2, BMP280_ADD, BMP280_REG);
-            T_raw = (buffer[0] << 8 | buffer[1]);
-            baroState = SHOULD_READ_PRESSURE;
-            break;
-
-        case (SHOULD_READ_PRESSURE):
-            setPressureMeas();
-            baroState = WAIT_FOR_PRESSURE;
-            break;
-
-        case (WAIT_FOR_PRESSURE):
-            baroState = READ_PRESSURE;
-            break;
-
-        case (READ_PRESSURE):
-            read(buffer, 2, BMP280_ADD, BMP280_REG);
-            B_raw = (buffer[0] << 8 | buffer[1]);
-            B_raw_accum += B_raw;
-            N_samples++;
-            baroState = SHOULD_READ_PRESSURE;
-            break;
-    }
+    read(buffer, 3, BMP280_ADD, BMP280_TEMP_REG);
+    T_raw = (buffer[0] << 12 | buffer[1] << 4 | buffer[2] >> 4);
+    read(buffer, 3, BMP280_ADD, BMP280_PRES_REG);
+    B_raw = (buffer[0] << 12 | buffer[1] << 4 | buffer[2] >> 4);
 
     return 0;
 }
@@ -167,6 +101,7 @@ bool baro::setup_i2c(){
 
     i2c_param_config(BMP280_I2C_PORT, &conf);
     i2c_driver_install(BMP280_I2C_PORT, conf.mode, 0, 0, 0);
+
     return 0;
 };
 
