@@ -8,6 +8,7 @@ struct cbData {
     QueueHandle_t queue;
     pcnt_unit_handle_t unit;
     bool homeWasSet;
+    int32_t loopCount;
 };
 
 class encoderReader {
@@ -19,8 +20,8 @@ private:
     const uint8_t GPIOA{ECD0A_GPIO};
     const uint8_t GPIOB{ECD0B_GPIO};
     const uint8_t GPIOZERO{ECD0ZERO_GPIO};
-    QueueHandle_t queue;
-    cbData data;
+    QueueHandle_t queue, queue2;
+    cbData data, data2;
 public:
     encoderReader() : zeroDetection(false) {setup();};
     encoderReader(const bool zeroDetection_in) : zeroDetection(zeroDetection_in) {setup();};

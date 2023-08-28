@@ -88,9 +88,10 @@ void sendTask(void* Parameters){
         serialLogger::logFloat(&(controlData->rpmState_ptr->rpmCurr), "CURRRPM");
         serialLogger::logFloat(&(controlData->rpmState_ptr->rpmDes), "DESRPM");
         serialLogger::logUInt16(controlData->pwmDes_ptr, "PWM");
+#if ENABLE_BARO
         serialLogger::logFloat((controlData->p_ptr), "PRESSURE");
         serialLogger::logFloat((controlData->T_ptr), "TEMPERATURE");
-        
+#endif
         serialLogger::blank_lines(1);
 
         vTaskDelayUntil(&startTimer, SEND_PERIOD_MS/portTICK_PERIOD_MS);
@@ -145,19 +146,21 @@ void controlTask(void* Parameters){
             watchdogCounter = 0;
         }
 
-        if (watchdogCounter > watchdogCounter_max) {
-            *(controlData->killSwitch_ptr) = true;
-            watchdogCounter = 0;
-        }
-
         prevMeas = *(controlData->currAngle_ptr);
         ECDReader.getCurrAngle(controlData->currAngle_ptr,
                               *(controlData->setZero_ptr),
                               controlData->homeWasSet_ptr);
 
+#if CL_CONTROL_STEPMOTOR
+        if (watchdogCounter > watchdogCounter_max) {
+            *(controlData->killSwitch_ptr) = true;
+            watchdogCounter = 0;
+        }
+
         if (std::abs(prevMeas - *(controlData->currAngle_ptr)) > watchdogCounter_diffMin) {
             watchdogCounter = 0;
         }
+#endif
 
         if (*(controlData->setZero_ptr)) {
             *(controlData->desAngle_ptr) = 0.0f;
@@ -230,15 +233,19 @@ void controlTask(void* Parameters){
 
             // Acionar o motor, caso esteja tudo de acordo e o erro tenha se
             // mantido coerente
-            watchdogCounter++;
             stepMotor.go();
+#if CL_CONTROL_STEPMOTOR
+            watchdogCounter++;
+#endif
             break;
 
         default:
             break;
         }
 
+#if ENABLE_BARO
         baro.getData(controlData->p_ptr, controlData->T_ptr);
+#endif
 
 #if LOG_TIMER
         dt = esp_timer_get_time() - start;
