@@ -125,6 +125,7 @@ void encoderReader::getCurrAngle(float *currAngle, bool setZero)
 {
     if (setZero) {
         pcnt_unit_clear_count(pcnt_unit);
+        data2.loopCount = 0;
     }
     pcnt_unit_get_count(pcnt_unit, &count);
     #if CL_CONTROL_STEPMOTOR
