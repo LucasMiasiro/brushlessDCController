@@ -18,8 +18,8 @@ class bldc{
     mcpwm_oper_handle_t oper = NULL;
     mcpwm_cmpr_handle_t comparator = NULL;
     mcpwm_gen_handle_t generator = NULL;
-    gpio_num_t bldc_gpio = BLDC0_GPIO;
 public:
+    gpio_num_t bldc_gpio = BLDC0_GPIO;
     bldc(gpio_num_t new_gpio) : bldc_gpio(new_gpio) {setup();};
     bldc() {setup();};
     void setPWM(uint16_t pwmDes);

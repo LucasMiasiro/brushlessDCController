@@ -26,8 +26,12 @@ struct controlData_ptr{
     bool* bypassAngMax_ptr;
     bool* homeWasSet_ptr;
     controlMode* controlMode_ptr;
-    rpmState* rpmState_ptr;
-    uint16_t* pwmDes_ptr;
+    rpmState* rpmState0_ptr;
+    rpmState* rpmState1_ptr;
+    rpmState* rpmState2_ptr;
+    uint16_t* pwmDes0_ptr;
+    uint16_t* pwmDes1_ptr;
+    uint16_t* pwmDes2_ptr;
 };
 
 

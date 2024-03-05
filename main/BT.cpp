@@ -16,7 +16,9 @@ struct BTData_ptr {
     controlData_ptr *controlData;
     TaskHandle_t *controlTask_h;
 };
+
 static BTData_ptr *__BTData_ptr;
+
 static float __AngDes;
 
 static char buffer[BT_BUFFERSIZE];
@@ -117,7 +119,7 @@ bool getAngDes(esp_spp_cb_param_t *param){
         return false;
     }
     return true;
-};
+}
 
 void logAngDesConfig(esp_spp_cb_param_t *param){
     sprintf(buffer, "Setting Desired Angle to: %.3f", __AngDes);
@@ -126,27 +128,27 @@ void logAngDesConfig(esp_spp_cb_param_t *param){
 }
 
 void logRPM(esp_spp_cb_param_t *param){
-    sprintf(buffer, "RPM0: %.3f", __BTData_ptr->controlData->rpmState_ptr->rpmCurr);
+    sprintf(buffer, "RPM0: %.3f", __BTData_ptr->controlData->rpmState0_ptr->rpmCurr);
     esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
     esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
-    // sprintf(buffer, "RPM1: %.3f", __BTData_ptr->controlData->rpmState_ptr[1].rpmCurr);
-    // esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
-    // esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
-    // sprintf(buffer, "RPM2: %.3f", __BTData_ptr->controlData->rpmState_ptr[2].rpmCurr);
-    // esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
-    // esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+    sprintf(buffer, "RPM1: %.3f", __BTData_ptr->controlData->rpmState1_ptr->rpmCurr);
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+    sprintf(buffer, "RPM2: %.3f", __BTData_ptr->controlData->rpmState2_ptr->rpmCurr);
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
 }
 
 void logPWM(esp_spp_cb_param_t *param){
-    sprintf(buffer, "PWM0: %u", *(__BTData_ptr->controlData->pwmDes_ptr));
+    sprintf(buffer, "PWM0: %u", *(__BTData_ptr->controlData->pwmDes0_ptr));
     esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
     esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
-    // sprintf(buffer, "RPM1: %.3f", __BTData_ptr->controlData->rpmState_ptr[1].rpmCurr);
-    // esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
-    // esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
-    // sprintf(buffer, "RPM2: %.3f", __BTData_ptr->controlData->rpmState_ptr[2].rpmCurr);
-    // esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
-    // esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+    sprintf(buffer, "PWM1: %u", *(__BTData_ptr->controlData->pwmDes1_ptr));
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+    sprintf(buffer, "PWM2: %u", *(__BTData_ptr->controlData->pwmDes2_ptr));
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
 }
 
 void logPWMConfig(esp_spp_cb_param_t *param){
@@ -183,7 +185,7 @@ bool getPWM(esp_spp_cb_param_t *param){
     }
 #endif
     return true;
-};
+}
 
 bool getRPM(esp_spp_cb_param_t *param){
     rpmConfigDes = readRPM((char *) param->data_ind.data);
@@ -196,7 +198,7 @@ bool getRPM(esp_spp_cb_param_t *param){
     }
 #endif
     return true;
-};
+}
 
 static bool bWriteAfterOpenEvt = false;
 static bool bWriteAfterWriteEvt = false;
@@ -249,7 +251,7 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
                 if (getAngDes(param)){
                     *(__BTData_ptr->controlData->desAngle_ptr) = __AngDes;
                     logAngDesConfig(param);
-                }; 
+                }
             }
 
             const char c1[] = BT_MSG_SHUTDOWN, c1b[] = BT_MSG_SHUTDOWN_B;
@@ -293,18 +295,46 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
             const char c8[] = BT_MSG_SET_PWMDES;
             if (isEqual((char *)param->data_ind.data, (char *)c8, sizeof(c8)/sizeof(c8[0]) - 1)){
                 if (getPWM(param)){
-                    *(__BTData_ptr->controlData->pwmDes_ptr) = pwmConfigDes.pwmDes;
+                    switch(pwmConfigDes.n){
+                        case 0:
+                            *(__BTData_ptr->controlData->pwmDes0_ptr) = pwmConfigDes.pwmDes;
+                            break;
+                        case 1:
+                            *(__BTData_ptr->controlData->pwmDes1_ptr) = pwmConfigDes.pwmDes;
+                            break;
+                        case 2:
+                            *(__BTData_ptr->controlData->pwmDes2_ptr) = pwmConfigDes.pwmDes;
+                            break;
+                        default:
+                            *(__BTData_ptr->controlData->pwmDes0_ptr) = pwmConfigDes.pwmDes;
+                    }
                     logPWMConfig(param);
-                }; 
+                }
             }
 
             const char c9[] = BT_MSG_SET_RPMDES;
             if (isEqual((char *)param->data_ind.data, (char *)c9, sizeof(c9)/sizeof(c9[0]) - 1)){
                 if (getRPM(param)){
-                    __BTData_ptr->controlData->rpmState_ptr->rpmDes = rpmConfigDes.rpmDes;
-                    __BTData_ptr->controlData->rpmState_ptr->rpmDes_isNew = true;
+                    switch (rpmConfigDes.n){
+                    case 0:
+                        __BTData_ptr->controlData->rpmState0_ptr->rpmDes = rpmConfigDes.rpmDes;
+                        __BTData_ptr->controlData->rpmState0_ptr->rpmDes_isNew = true;
+                        break;
+                    case 1:
+                        __BTData_ptr->controlData->rpmState1_ptr->rpmDes = rpmConfigDes.rpmDes;
+                        __BTData_ptr->controlData->rpmState1_ptr->rpmDes_isNew = true;
+                        break;
+                    case 2:
+                        __BTData_ptr->controlData->rpmState2_ptr->rpmDes = rpmConfigDes.rpmDes;
+                        __BTData_ptr->controlData->rpmState2_ptr->rpmDes_isNew = true;
+                        break;
+                    default:
+                        __BTData_ptr->controlData->rpmState0_ptr->rpmDes = rpmConfigDes.rpmDes;
+                        __BTData_ptr->controlData->rpmState0_ptr->rpmDes_isNew = true;
+                        break;
+                    }
                     logRPMConfig(param);
-                }; 
+                }
             }
 
             const char c10[] = BT_MSG_GET_PWM;
@@ -321,27 +351,31 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
             //     }; 
             // }
 
-            // const char c4[] = BT_MSG_SET_RPMDES_ALL;
-            // if (isEqual((char *)param->data_ind.data, (char *)c4, sizeof(c4)/sizeof(c4[0]) - 1)){
-            //     if (getRPM(param)){
-            //         for (uint8_t i = 0; i < N_BLDC; i++){
-            //             rpmConfigDes.n = i;
-            //             __BTData_ptr->controlData->rpmState_ptr[i].rpmDes = rpmConfigDes.rpmDes;
-            //             logRPMConfig(param);
-            //         }; 
-            //     }; 
-            // }
+            const char c11[] = BT_MSG_SET_RPMDES_ALL;
+            if (isEqual((char *)param->data_ind.data, (char *)c11, sizeof(c11)/sizeof(c11[0]) - 1)){
+                if (getRPM(param)){
+                    __BTData_ptr->controlData->rpmState0_ptr->rpmDes = rpmConfigDes.rpmDes;
+                    __BTData_ptr->controlData->rpmState1_ptr->rpmDes = rpmConfigDes.rpmDes;
+                    __BTData_ptr->controlData->rpmState2_ptr->rpmDes = rpmConfigDes.rpmDes;
+                    for (uint8_t i = 0; i < N_BLDC; i++){
+                        rpmConfigDes.n = i;
+                        logRPMConfig(param);
+                    } 
+                } 
+            }
 
-            // const char c5[] = BT_MSG_SET_PWMDES_ALL;
-            // if (isEqual((char *)param->data_ind.data, (char *)c5, sizeof(c5)/sizeof(c5[0]) - 1)){
-            //     if (getPWM(param)){
-            //         for (uint8_t i = 0; i < N_BLDC; i++){
-            //             pwmConfigDes.n = i;
-            //             *(__BTData_ptr->controlData->pwmDes_ptr + i) = pwmConfigDes.pwmDes;
-            //             logPWMConfig(param);
-            //         }; 
-            //     }; 
-            // }
+            const char c12[] = BT_MSG_SET_PWMDES_ALL;
+            if (isEqual((char *)param->data_ind.data, (char *)c12, sizeof(c12)/sizeof(c12[0]) - 1)){
+                if (getPWM(param)){
+                    *(__BTData_ptr->controlData->pwmDes0_ptr) = pwmConfigDes.pwmDes;
+                    *(__BTData_ptr->controlData->pwmDes1_ptr) = pwmConfigDes.pwmDes;
+                    *(__BTData_ptr->controlData->pwmDes2_ptr) = pwmConfigDes.pwmDes;
+                    for (uint8_t i = 0; i < N_BLDC; i++){
+                        pwmConfigDes.n = i;
+                        logPWMConfig(param);
+                    }
+                }
+            }
 
         }
  

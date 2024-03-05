@@ -26,8 +26,9 @@ extern "C" void app_main(void)
     static float T = {0.0f}, p = {0.0f};
     static bool setZero = false, killSwitch = true, bypassAngMax = false,
                 homeWasSet = false;
-    static uint16_t pwmDes = 0;
-    static rpmState rpmState = {0.0f, false, 0.0f, false};
+    static uint16_t pwmDes0 = 0, pwmDes1 = 0, pwmDes2 = 0;
+
+    static rpmState rpmState0 = {0.0f, false, 0.0f, false}, rpmState1 = {0.0f, false, 0.0f, false}, rpmState2 = {0.0f, false, 0.0f, false};
 
     static controlData_ptr controlData = {.currAngle_ptr = &currAngle,
                                           .desAngle_ptr = &desAngle,
@@ -38,8 +39,12 @@ extern "C" void app_main(void)
                                           .bypassAngMax_ptr = &bypassAngMax,
                                           .homeWasSet_ptr = &homeWasSet,
                                           .controlMode_ptr = NULL,
-                                          .rpmState_ptr = &rpmState,
-                                          .pwmDes_ptr = &pwmDes,
+                                          .rpmState0_ptr = &rpmState0,
+                                          .rpmState1_ptr = &rpmState1,
+                                          .rpmState2_ptr = &rpmState2,
+                                          .pwmDes0_ptr = &pwmDes0,
+                                          .pwmDes1_ptr = &pwmDes1,
+                                          .pwmDes2_ptr = &pwmDes2,
                                           };
 
     vTaskDelay(1000/portTICK_PERIOD_MS);
@@ -85,9 +90,15 @@ void sendTask(void* Parameters){
         serialLogger::logUInt8((uint8_t*)(controlData->controlMode_ptr), "CTRLMODE");
         serialLogger::logUInt8((uint8_t*)(controlData->killSwitch_ptr), "KILLSWITCH");
         serialLogger::logUInt8((uint8_t*)(controlData->homeWasSet_ptr), "HOMESET");
-        serialLogger::logFloat(&(controlData->rpmState_ptr->rpmCurr), "CURRRPM");
-        serialLogger::logFloat(&(controlData->rpmState_ptr->rpmDes), "DESRPM");
-        serialLogger::logUInt16(controlData->pwmDes_ptr, "PWM");
+        serialLogger::logFloat(&(controlData->rpmState0_ptr->rpmCurr), "CURRRPM0");
+        serialLogger::logFloat(&(controlData->rpmState0_ptr->rpmDes), "DESRPM0");
+        serialLogger::logUInt16(controlData->pwmDes0_ptr, "PWM0");
+        serialLogger::logFloat(&(controlData->rpmState1_ptr->rpmCurr), "CURRRPM1");
+        serialLogger::logFloat(&(controlData->rpmState1_ptr->rpmDes), "DESRPM1");
+        serialLogger::logUInt16(controlData->pwmDes1_ptr, "PWM1");
+        serialLogger::logFloat(&(controlData->rpmState2_ptr->rpmCurr), "CURRRPM2");
+        serialLogger::logFloat(&(controlData->rpmState2_ptr->rpmDes), "DESRPM2");
+        serialLogger::logUInt16(controlData->pwmDes2_ptr, "PWM2");
 #if ENABLE_BARO
         serialLogger::logFloat((controlData->p_ptr), "PRESSURE");
         serialLogger::logFloat((controlData->T_ptr), "TEMPERATURE");
@@ -115,9 +126,9 @@ void controlTask(void* Parameters){
     const uint32_t watchdogCounter_max = SM_WATCHDOG_COUNTER_MAX;
     const float watchdogCounter_diffMin = SM_WATCHDOG_DIFF_MIN;
     uint32_t watchdogCounter = 0;
-    rpmCounter RPM;
-    SMC2 SMC0;
-    bldc BLDC0(BLDC0_GPIO);
+    rpmCounter RPM0(RPM0_GPIO), RPM1(RPM1_GPIO), RPM2(RPM2_GPIO);
+    SMC2 SMC0, SMC1, SMC2;
+    bldc BLDC0(BLDC0_GPIO), BLDC1(BLDC1_GPIO), BLDC2(BLDC2_GPIO);
     baro baro;
 
 #if LOG_TIMER
@@ -128,17 +139,33 @@ void controlTask(void* Parameters){
     TickType_t startTimer = xTaskGetTickCount();
 
     while(1){
-        RPM.getRPM(controlData->rpmState_ptr);
+        RPM0.getRPM(controlData->rpmState0_ptr);
+        RPM1.getRPM(controlData->rpmState1_ptr);
+        RPM2.getRPM(controlData->rpmState2_ptr);
 
 #if CL_CONTROL_BLDC
-        SMC0.update(controlData->rpmState_ptr->rpmDes,
-                    controlData->rpmState_ptr->rpmCurr,
-                    controlData->rpmState_ptr->rpmCurr_isNew);
-        *(controlData->pwmDes_ptr) = SMC0.get();
-        controlData->rpmState_ptr->rpmCurr_isNew = false;
+        SMC0.update(controlData->rpmState0_ptr->rpmDes,
+                    controlData->rpmState0_ptr->rpmCurr,
+                    controlData->rpmState0_ptr->rpmCurr_isNew);
+        *(controlData->pwmDes0_ptr) = SMC0.get();
+        controlData->rpmState0_ptr->rpmCurr_isNew = false;
+
+        SMC1.update(controlData->rpmState1_ptr->rpmDes,
+                    controlData->rpmState1_ptr->rpmCurr,
+                    controlData->rpmState1_ptr->rpmCurr_isNew);
+        *(controlData->pwmDes1_ptr) = SMC1.get();
+        controlData->rpmState1_ptr->rpmCurr_isNew = false;
+
+        SMC2.update(controlData->rpmState2_ptr->rpmDes,
+                    controlData->rpmState2_ptr->rpmCurr,
+                    controlData->rpmState2_ptr->rpmCurr_isNew);
+        *(controlData->pwmDes2_ptr) = SMC2.get();
+        controlData->rpmState2_ptr->rpmCurr_isNew = false;
 #endif
 
-        BLDC0.setPWM(*(controlData->pwmDes_ptr));
+        BLDC0.setPWM(*(controlData->pwmDes0_ptr));
+        BLDC1.setPWM(*(controlData->pwmDes1_ptr));
+        BLDC2.setPWM(*(controlData->pwmDes2_ptr));
 
         if (*(controlData->killSwitch_ptr)) {
             prevMode = STOP;

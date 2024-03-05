@@ -8,6 +8,7 @@
 #define ENABLE_BLDC_TOL                 0 
 #define ENABLE_BLDC_SAN_CHECK           1 
 #define ENABLE_BARO                     0
+#define N_BLDC                          3
 
 #define SHOULD_LOG                      1
 #if SHOULD_LOG
@@ -32,8 +33,8 @@
 #define BLDC_TIMER_RESOLUTION           1000000 // 1 MHz (1 us per tick)
 #define BLDC_TIMER_PERIOD               20000 // 20000 ticks (20000 us) (50 Hz)
 #define BLDC0_GPIO                      GPIO_NUM_22
-// #define BLDC1_GPIO                      GPIO_NUM_19
-// #define BLDC2_GPIO                      GPIO_NUM_21
+#define BLDC1_GPIO                      GPIO_NUM_19
+#define BLDC2_GPIO                      GPIO_NUM_21
 
 #define RPM_MAX_COUNT                   1000
 #define RPM_COUNT                       2
@@ -43,6 +44,8 @@
 #define RPM_DT_MIN                      RPM_COUNT*60*1000000/(RPM_MAX)
 #define RPM_DT_MAX                      RPM_COUNT*60*1000000/(RPM_MIN)
 #define RPM0_GPIO                       16
+#define RPM1_GPIO                       15
+#define RPM2_GPIO                       2
 
 // Baro
 #define BMP280_SDA_IO                   GPIO_NUM_14
@@ -111,7 +114,7 @@
 #define SPP_SERVER_NAME                 "SM_CTRL_SERVER"
 #define BT_INIT_MSG                     "Connection stablished...\n"
 #define BT_RECEIVED_MSG                 "Received: "
-#define BT_DEVICE_NAME                  "LAE - Stepper Motor Control"
+#define BT_DEVICE_NAME                  "LAE - 02"
 #define BT_BUFFERSIZE                   32
 
 #define BT_MSG_SHUTDOWN                 "X"
