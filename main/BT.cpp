@@ -163,7 +163,17 @@ void logRPMConfig(esp_spp_cb_param_t *param){
     esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
 }
 
+void logCL_On(esp_spp_cb_param_t *param){
+    sprintf(buffer, "Setting CL Control On");
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+}
 
+void logCL_Off(esp_spp_cb_param_t *param){
+    sprintf(buffer, "Setting CL Control Off");
+    esp_spp_write(param->write.handle, sizeofArray(buffer), (uint8_t *) buffer);
+    esp_spp_write(param->write.handle, 1, (uint8_t *)LF);
+}
 
 bool isEqual(char *a, char *b, const int len){
     for(int i = 0; i < len; i++){
@@ -375,6 +385,16 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
                         logPWMConfig(param);
                     }
                 }
+            }
+
+            const char c13[] = BT_MSG_SET_CL_ON;
+            if (isEqual((char *)param->data_ind.data, (char *)c13, sizeof(c13)/sizeof(c13[0]) - 1)){
+                *(__BTData_ptr->controlData->shouldUse_CL_ptr) = true;
+            }
+
+            const char c14[] = BT_MSG_SET_CL_OFF;
+            if (isEqual((char *)param->data_ind.data, (char *)c14, sizeof(c14)/sizeof(c14[0]) - 1)){
+                *(__BTData_ptr->controlData->shouldUse_CL_ptr) = false;
             }
 
         }

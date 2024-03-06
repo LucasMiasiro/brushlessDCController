@@ -25,7 +25,7 @@ extern "C" void app_main(void)
     static float currAngle = {0.0f}, desAngle = {0.0f};
     static float T = {0.0f}, p = {0.0f};
     static bool setZero = false, killSwitch = true, bypassAngMax = false,
-                homeWasSet = false;
+                homeWasSet = false, shouldUse_CL = true;
     static uint16_t pwmDes0 = 0, pwmDes1 = 0, pwmDes2 = 0;
 
     static rpmState rpmState0 = {0.0f, false, 0.0f, false}, rpmState1 = {0.0f, false, 0.0f, false}, rpmState2 = {0.0f, false, 0.0f, false};
@@ -38,6 +38,7 @@ extern "C" void app_main(void)
                                           .killSwitch_ptr = &killSwitch,
                                           .bypassAngMax_ptr = &bypassAngMax,
                                           .homeWasSet_ptr = &homeWasSet,
+                                          .shouldUse_CL_ptr = &shouldUse_CL,
                                           .controlMode_ptr = NULL,
                                           .rpmState0_ptr = &rpmState0,
                                           .rpmState1_ptr = &rpmState1,
@@ -144,23 +145,25 @@ void controlTask(void* Parameters){
         RPM2.getRPM(controlData->rpmState2_ptr);
 
 #if CL_CONTROL_BLDC
-        SMC0.update(controlData->rpmState0_ptr->rpmDes,
-                    controlData->rpmState0_ptr->rpmCurr,
-                    controlData->rpmState0_ptr->rpmCurr_isNew);
-        *(controlData->pwmDes0_ptr) = SMC0.get();
-        controlData->rpmState0_ptr->rpmCurr_isNew = false;
+        if (*(controlData->shouldUse_CL_ptr)) {
+            SMC0.update(controlData->rpmState0_ptr->rpmDes,
+                        controlData->rpmState0_ptr->rpmCurr,
+                        controlData->rpmState0_ptr->rpmCurr_isNew);
+            *(controlData->pwmDes0_ptr) = SMC0.get();
+            controlData->rpmState0_ptr->rpmCurr_isNew = false;
 
-        SMC1.update(controlData->rpmState1_ptr->rpmDes,
-                    controlData->rpmState1_ptr->rpmCurr,
-                    controlData->rpmState1_ptr->rpmCurr_isNew);
-        *(controlData->pwmDes1_ptr) = SMC1.get();
-        controlData->rpmState1_ptr->rpmCurr_isNew = false;
+            SMC1.update(controlData->rpmState1_ptr->rpmDes,
+                        controlData->rpmState1_ptr->rpmCurr,
+                        controlData->rpmState1_ptr->rpmCurr_isNew);
+            *(controlData->pwmDes1_ptr) = SMC1.get();
+            controlData->rpmState1_ptr->rpmCurr_isNew = false;
 
-        SMC2.update(controlData->rpmState2_ptr->rpmDes,
-                    controlData->rpmState2_ptr->rpmCurr,
-                    controlData->rpmState2_ptr->rpmCurr_isNew);
-        *(controlData->pwmDes2_ptr) = SMC2.get();
-        controlData->rpmState2_ptr->rpmCurr_isNew = false;
+            SMC2.update(controlData->rpmState2_ptr->rpmDes,
+                        controlData->rpmState2_ptr->rpmCurr,
+                        controlData->rpmState2_ptr->rpmCurr_isNew);
+            *(controlData->pwmDes2_ptr) = SMC2.get();
+            controlData->rpmState2_ptr->rpmCurr_isNew = false;
+        }
 #endif
 
         BLDC0.setPWM(*(controlData->pwmDes0_ptr));

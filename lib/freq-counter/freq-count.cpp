@@ -9,32 +9,57 @@
 
 static const char *TAG = "RPM";
 
-static int64_t start_RPM = esp_timer_get_time();
-static int64_t dt_RPM = RPM_DT_MAX;
-static bool rpmCurr_isNew = false;
 
-static pcnt_unit_handle_t pcnt_unit_RPM = NULL;
+// static pcnt_unit_handle_t pcnt_unit_RPM = NULL;
 
 // static bool pcnt_on_reach(pcnt_unit_handle_t unit, pcnt_watch_event_data_t *edata, void *user_ctx)
+
+// bool rpmCounter::pcnt_on_reach(pcnt_unit_t *unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
+// static bool pcnt_on_reach(pcnt_unit_t *unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
+// {
+//     BaseType_t high_task_wakeup;
+//     QueueHandle_t queue = (QueueHandle_t)user_ctx;
+//     xQueueSendFromISR(queue, &(edata->watch_point_value), &high_task_wakeup);
+
+//     dt_RPM = esp_timer_get_time() - start_RPM;
+//     if (dt_RPM <= RPM_DT_MIN/RPM_COUNT_PER_REV) {
+//         dt_RPM = RPM_DT_MIN/RPM_COUNT_PER_REV;
+//     } else if (dt_RPM > RPM_DT_MAX/RPM_COUNT_PER_REV) {
+//         dt_RPM = RPM_DT_MAX/RPM_COUNT_PER_REV;
+//     }
+
+//     start_RPM = esp_timer_get_time();
+//     rpmCurr_isNew = true;
+//     ESP_ERROR_CHECK(pcnt_unit_clear_count(unit));
+
+//     return (high_task_wakeup == pdTRUE);
+// }
+
 static bool pcnt_on_reach(pcnt_unit_t *unit, const pcnt_watch_event_data_t *edata, void *user_ctx)
 {
     BaseType_t high_task_wakeup;
-    QueueHandle_t queue = (QueueHandle_t)user_ctx;
+    cbDataRPM* data = (cbDataRPM*) user_ctx;
+    QueueHandle_t queue = data->queue;
+    rpmCounter *self = data->rpm;
+
     xQueueSendFromISR(queue, &(edata->watch_point_value), &high_task_wakeup);
 
-    dt_RPM = esp_timer_get_time() - start_RPM;
-    if (dt_RPM <= RPM_DT_MIN/RPM_COUNT_PER_REV) {
-        dt_RPM = RPM_DT_MIN/RPM_COUNT_PER_REV;
-    } else if (dt_RPM > RPM_DT_MAX/RPM_COUNT_PER_REV) {
-        dt_RPM = RPM_DT_MAX/RPM_COUNT_PER_REV;
+    self->dt_RPM = esp_timer_get_time() - self->start_RPM;
+    if (self->dt_RPM <= RPM_DT_MIN/RPM_COUNT_PER_REV) {
+        self->dt_RPM = RPM_DT_MIN/RPM_COUNT_PER_REV;
+    } else if (self->dt_RPM > RPM_DT_MAX/RPM_COUNT_PER_REV) {
+        self->dt_RPM = RPM_DT_MAX/RPM_COUNT_PER_REV;
     }
 
-    start_RPM = esp_timer_get_time();
-    rpmCurr_isNew = true;
+    self->start_RPM = esp_timer_get_time();
+    self->rpmCurr_isNew = true;
     ESP_ERROR_CHECK(pcnt_unit_clear_count(unit));
 
     return (high_task_wakeup == pdTRUE);
 }
+
+
+
 
 void rpmCounter::setup()
 {
@@ -55,7 +80,8 @@ void rpmCounter::setup()
 
     pcnt_event_callbacks_t cbs = {.on_reach = pcnt_on_reach,};
     queue = xQueueCreate(10, sizeof(int));
-    ESP_ERROR_CHECK(pcnt_unit_register_event_callbacks(pcnt_unit_RPM, &cbs, queue));
+    data = {.queue = queue, .rpm = this};
+    ESP_ERROR_CHECK(pcnt_unit_register_event_callbacks(pcnt_unit_RPM, &cbs, &data));
 
     ESP_ERROR_CHECK(pcnt_unit_enable(pcnt_unit_RPM));
     ESP_ERROR_CHECK(pcnt_unit_clear_count(pcnt_unit_RPM));

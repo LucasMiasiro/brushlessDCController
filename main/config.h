@@ -25,9 +25,9 @@
 #define BUILTIN_LED                     GPIO_NUM_2
 #define MAX_PWM                         2500
 #define PWM_IDLE                        800.0f
-#define PWM_MIN                         900.0f
+#define PWM_MIN                         1000.0f
 #define PWM_SPOOLUP                     1200.0f
-#define PWM_DELTA                       1000.0f
+#define PWM_DELTA                       1200.0f
 
 // #define N_BLDC                          3
 #define BLDC_TIMER_RESOLUTION           1000000 // 1 MHz (1 us per tick)
@@ -126,6 +126,8 @@
 #define BT_MSG_SET_RPMDES               "RSET"
 #define BT_MSG_SET_PWMDES_ALL           "ALLPSET"
 #define BT_MSG_SET_RPMDES_ALL           "ALLRSET"
+#define BT_MSG_SET_CL_ON                "CLON"
+#define BT_MSG_SET_CL_OFF               "CLOFF"
 
 #define BT_MSG_SET_ZERO                 "ZEROSET"
 #define BT_MSG_BT_BP_ANGMAX             "BPANGMAX"
