@@ -4,7 +4,7 @@
 #define SYSTEM_SAMPLE_PERIOD_MS         10
 #define SEND_PERIOD_MS                  100
 #define CL_CONTROL_BLDC                 1 //Close-loop BLDC Control
-#define CL_CONTROL_STEPMOTOR            0 //Close-loop Step Motor Control
+#define CL_CONTROL_STEPMOTOR            1 //Close-loop Step Motor Control
 #define ENABLE_BLDC_TOL                 0 
 #define ENABLE_BLDC_SAN_CHECK           1 
 #define ENABLE_BARO                     0
@@ -77,7 +77,7 @@
 #define ECD0A_GPIO                      26
 #define ECD0B_GPIO                      27
 #endif
-#define ECD0ZERO_GPIO                   15
+#define ECD0ZERO_GPIO                   34
 #define ECD_TICKS                       2000.0f
 #define STEPS_PER_DEG_STEPMOTOR         360.0f/(51200.0f*10.0f)
 
@@ -114,7 +114,7 @@
 #define SPP_SERVER_NAME                 "SM_CTRL_SERVER"
 #define BT_INIT_MSG                     "Connection stablished...\n"
 #define BT_RECEIVED_MSG                 "Received: "
-#define BT_DEVICE_NAME                  "LAE - 02"
+#define BT_DEVICE_NAME                  "LAE - 02 (Teste)"
 #define BT_BUFFERSIZE                   32
 
 #define BT_MSG_SHUTDOWN                 "X"
