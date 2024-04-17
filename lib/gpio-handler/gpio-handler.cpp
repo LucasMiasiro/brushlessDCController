@@ -1,8 +1,9 @@
 #include "driver/gpio.h"
-#include "driver/mcpwm.h"
+// #include "driver/mcpwm.h"
 #include "gpio-handler.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "driver/mcpwm_prelude.h"
 
 builtin_led::builtin_led(){
     gpio_config_t io_conf = {};
@@ -41,47 +42,54 @@ void builtin_led::blink(int n, bool endHigh){
     }
 }
 
-void bldc::setup(){ // Funcionando na versão 5.1 da ESP-IDF. Eventualmente o código precisa ser atualizado
+uint8_t bldc::n_count = 0;
 
-    mcpwm_config_t pwm_config = {
-        .frequency = 50,
-        .cmpr_a = 0,     // Initial duty cycle of PWM0A
-        .cmpr_b = 0,     // Initial duty cycle of PWM0B
-        .duty_mode = MCPWM_DUTY_MODE_0,
-        .counter_mode = MCPWM_UP_COUNTER,
+void bldc::setup(){
+    n = n_count;
+    n_count++;
+
+    mcpwm_timer_config_t timer_config = {
+        .group_id = 0,
+        .clk_src = MCPWM_TIMER_CLK_SRC_DEFAULT,
+        .resolution_hz = BLDC_TIMER_RESOLUTION,
+        .count_mode = MCPWM_TIMER_COUNT_MODE_UP,
+        .period_ticks = BLDC_TIMER_PERIOD,
     };
+    mcpwm_new_timer(&timer_config, &timer);
 
-    switch (n) {
-        case 0:
-            mcpwm_gpio_init(BLDC0_UNIT, BLDC0_IO, BLDC0_GPIO);
-            pwm_config.frequency = BLDC0_FREQ;
-            mcpwm_init(BLDC0_UNIT, BLDC0_TIMER, &pwm_config);
-            break;
+    mcpwm_operator_config_t operator_config = {
+        .group_id = 0, // must be in the same group to the timer
+    };
+    mcpwm_new_operator(&operator_config, &oper);  
+    mcpwm_operator_connect_timer(oper, timer);
 
-        case 1:
-            mcpwm_gpio_init(BLDC1_UNIT, BLDC1_IO, BLDC1_GPIO);
-            pwm_config.frequency = BLDC1_FREQ;
-            mcpwm_init(BLDC1_UNIT, BLDC1_TIMER, &pwm_config);
-            break;
+    mcpwm_comparator_config_t comparator_config = {
+        .flags = {.update_cmp_on_tez = true,},
+    };
+    mcpwm_new_comparator(oper, &comparator_config, &comparator);
 
-        case 2:
-            mcpwm_gpio_init(BLDC2_UNIT, BLDC2_IO, BLDC2_GPIO);
-            pwm_config.frequency = BLDC2_FREQ;
-            mcpwm_init(BLDC2_UNIT, BLDC2_TIMER, &pwm_config);
-            break;
-    }
+    mcpwm_generator_config_t generator_config = {
+        .gen_gpio_num = bldc_gpio,
+    };
+    mcpwm_new_generator(oper, &generator_config, &generator);
+
+    mcpwm_comparator_set_compare_value(comparator, 0);
+
+    // go high on counter empty
+    mcpwm_generator_set_actions_on_timer_event(generator,
+                    MCPWM_GEN_TIMER_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, MCPWM_TIMER_EVENT_EMPTY, MCPWM_GEN_ACTION_HIGH),
+                    MCPWM_GEN_TIMER_EVENT_ACTION_END());
+    
+    // go low on compare threshold
+    mcpwm_generator_set_actions_on_compare_event(generator,
+                    MCPWM_GEN_COMPARE_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, comparator, MCPWM_GEN_ACTION_LOW),
+                    MCPWM_GEN_COMPARE_EVENT_ACTION_END());
+    
+    mcpwm_timer_enable(timer);
+
+    mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP);
 }
 
 void bldc::setPWM(uint16_t pwmDes){
-    switch (n) {
-        case 0:
-            mcpwm_set_duty_in_us(BLDC0_UNIT, BLDC0_TIMER, BLDC0_OPR, pwmDes);
-            break;
-        case 1:
-            mcpwm_set_duty_in_us(BLDC1_UNIT, BLDC1_TIMER, BLDC1_OPR, pwmDes);
-            break;
-        case 2:
-            mcpwm_set_duty_in_us(BLDC2_UNIT, BLDC2_TIMER, BLDC2_OPR, pwmDes);
-            break;
-    }
+    mcpwm_comparator_set_compare_value(comparator, pwmDes);
 }

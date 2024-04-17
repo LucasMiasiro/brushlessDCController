@@ -13,6 +13,7 @@ private:
     float c1{BLDC_C1};
     float Fstar{BLDC_FSTAR};
     float FI{BLDC_FI};
+    float tol{BLDC_RPM_TOL};
     float ref{0.0f};
     float meas{0.0f};
     float e{0.0f};
@@ -30,6 +31,7 @@ private:
     // float dt_accum{0.0f};
     float offset{PWM_MIN};
     float pwm_idle{PWM_IDLE};
+    float pwm_spoolup{PWM_SPOOLUP};
     uint16_t sanityCount = 0;
     uint8_t boundOut();
 public:
