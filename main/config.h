@@ -85,7 +85,7 @@
 #define SM_TIMER_RESOLUTION             1000000 // 1 MHz (1 us per tick)
 #define SM_TIMER_PERIOD                 250 // 250 ticks (250 us) (4000 Hz)
 #define SM_PULSE_WIDTH                  100  // 100 ticks  (100 us)
-#define SM_PULSE_GPIO                   19
+#define SM_PULSE_GPIO                   32
 #define SM_DIR_GPIO                     GPIO_NUM_17
 #define SM_ANG_TOL                      0.03f
 #define SM_ANG_MAX                      60.0f
@@ -114,7 +114,7 @@
 #define SPP_SERVER_NAME                 "SM_CTRL_SERVER"
 #define BT_INIT_MSG                     "Connection stablished...\n"
 #define BT_RECEIVED_MSG                 "Received: "
-#define BT_DEVICE_NAME                  "LAE - 02 (Teste)"
+#define BT_DEVICE_NAME                  "LAE - 02 (Stepper)"
 #define BT_BUFFERSIZE                   32
 
 #define BT_MSG_SHUTDOWN                 "X"
