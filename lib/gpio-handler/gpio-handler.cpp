@@ -45,11 +45,16 @@ void builtin_led::blink(int n, bool endHigh){
 uint8_t bldc::n_count = 0;
 
 void bldc::setup(){
-    n = n_count;
-    n_count++;
+    uint8_t id = 0;
+    n = n_count++;
+
+    if (n >= 2) {
+        id = 1;
+    }
+
 
     mcpwm_timer_config_t timer_config = {
-        .group_id = 0,
+        .group_id = id,
         .clk_src = MCPWM_TIMER_CLK_SRC_DEFAULT,
         .resolution_hz = BLDC_TIMER_RESOLUTION,
         .count_mode = MCPWM_TIMER_COUNT_MODE_UP,
@@ -58,7 +63,7 @@ void bldc::setup(){
     mcpwm_new_timer(&timer_config, &timer);
 
     mcpwm_operator_config_t operator_config = {
-        .group_id = 0, // must be in the same group to the timer
+        .group_id = id, // must be in the same group to the timer
     };
     mcpwm_new_operator(&operator_config, &oper);  
     mcpwm_operator_connect_timer(oper, timer);
